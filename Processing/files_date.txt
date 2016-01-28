@@ -1,0 +1,6 @@
+2016-01-13 17:56:04	 n/a 	../selector_rootFiles/my_selector_results_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01_1452704164.root
+2016-01-13 17:56:12	 n/a 	../selector_rootFiles/my_selector_results_TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_v01_1452704172.root
+2016-01-13 17:56:19	 n/a 	../selector_rootFiles/my_selector_results_WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01_1452704179.root
+2016-01-13 17:56:26	 n/a 	../selector_rootFiles/my_selector_results_ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01_1452704186.root
+2016-01-13 17:56:48	 n/a 	../selector_rootFiles/my_selector_results_DoubleEG_Run2015D-05Oct2015-v1_1452704208.root
+2016-01-13 17:57:50	 n/a 	../selector_rootFiles/my_selector_results_DoubleEG_Run2015D-PromptReco-v4_1452704270.root
