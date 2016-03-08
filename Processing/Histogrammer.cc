@@ -34,10 +34,10 @@
 #include <TGraph.h>
 
 
-//#include "TreeParticles.hpp"
+#include "TreeParticles.hpp"
 //#include "../../cms_sw/CMSSW_7_4_14/src/TreeWriter/TreeWriter/plugins/TreeParticles.hpp"
 //#include "/home/home4/institut_1b/rmeyer/cms_sw/CMSSW_7_4_14/src/TreeWriter/TreeWriter/plugins/TreeParticles.hpp"
-#include "TreeParticles.hpp"
+//#include "TreeParticles.hpp"
 
 // comment catcher */
 // namespace stuff
@@ -175,7 +175,7 @@ class Histogrammer : public TSelector {
 		TTreeReaderArray<tree::Muon> muons;
 		TTreeReaderArray<tree::Particle> genJets;
 		TTreeReaderArray<tree::GenParticle> genParticles;
-		TTreeReaderArray<tree::PFCandidate> pfCandidates;
+		//TTreeReaderArray<tree::PFCandidate> pfCandidates;
 
 		TTreeReaderValue<tree::MET> met;
 		
@@ -188,7 +188,7 @@ class Histogrammer : public TSelector {
 		
 		
 		TTreeReaderValue<Int_t> nGoodVertices;
-		TTreeReaderValue<Int_t> nChargedPfCandidates;
+		//TTreeReaderValue<Int_t> nChargedPfCandidates;
 		TTreeReaderValue<Int_t> nPV;
 		TTreeReaderValue<Int_t> genLeptonsFromW;
 
@@ -207,16 +207,22 @@ class Histogrammer : public TSelector {
 		
 		TTreeReaderValue<Bool_t> TriggerR9Id90;
 		TTreeReaderValue<Bool_t> TriggerR9Id85;
-
+		
+		//TTreeReaderValue<Bool_t> TriggerDiphoton_Primary;
+		//TTreeReaderValue<Bool_t> TriggerDiphoton_Contr01;
+		//TTreeReaderValue<Bool_t> TriggerDiphoton_Contr02;
+		//TTreeReaderValue<Bool_t> TriggerDiphoton_Contr03;
+		
+		
 		vector<tree::Photon*> selPhotons;
 		vector<tree::Jet*> selJets;
 		vector<tree::Jet*> selBJets;
 		vector<tree::Electron*> selElectrons;
 		vector<tree::Muon*> selMuons;
-		vector<tree::PFCandidate*> selPFCandidates;
+		//vector<tree::PFCandidate*> selPFCandidates;
 		
 		// genParticles
-
+		
 		vector<tree::Photon*> selPhotons2;
 		vector<tree::Jet*> selJets2;
 		vector<tree::Jet*> selBJets2;
@@ -226,7 +232,7 @@ class Histogrammer : public TSelector {
 		int nTotalEvents = 0;		// weighted number of monte carlo events
 		
 		
-		int nTotalEvents_bin = 2;	// bin of the cutflow diagram
+		int nTotalEvents_bin = 1;	// bin of the cutflow diagram
 
 		Float_t selW = 1.;			// weight
 
@@ -275,10 +281,10 @@ Histogrammer::Histogrammer():
 	muons( fReader, "muons" ),
 	genJets( fReader, "genJets" ),
 	genParticles( fReader, "genParticles" ),
-	pfCandidates( fReader, "PFCandidates" ),
+	//pfCandidates( fReader, "PFCandidates" ),
 	met( fReader, "met" ),
 	nGoodVertices( fReader, "nGoodVertices" ),
-	nChargedPfCandidates( fReader, "nChargedPfCandidates" ),
+	//nChargedPfCandidates( fReader, "nChargedPfCandidates" ),
 	rho ( fReader, "rho" ),
 	mc_weight( fReader, "mc_weight" ),
 	pu_weight( fReader, "pu_weight" ),
@@ -287,8 +293,6 @@ Histogrammer::Histogrammer():
 	eventNo( fReader, "evtNo"),
 	runNo( fReader, "runNo"),
 	lumNo( fReader, "lumNo"),
-	
-	
 	
 	signalTriggerFired( fReader, "HLT_Photon90_CaloIdL_PFHT500_v" ),
 	TriggerR9Id90( fReader, "HLT_Photon36_R9Id90_HE10_Iso40_EBOnly_PFMET40_v" ),
@@ -323,12 +327,12 @@ void Histogrammer::initSelection( string const& s ) {
 	h2name = "f_zpeak_tot_eta";
 	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];|#eta|",
 						200,0,200,
-						60,0,6);
+						300,-1.5,1.5);
 	
 	h2name = "f_zpeak_pas_eta";
 	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];|#eta|",
 						200,0,200,
-						60,0,6);
+						300,-1.5,1.5);
 	
 	h2name = "f_zpeak_tot_pt";
 	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];pt [GeV]",
@@ -366,12 +370,12 @@ void Histogrammer::initSelection( string const& s ) {
 	h2name = "r_zpeak_tot_eta";
 	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];|#eta|",
 						200,0,200,
-						60,0,6);
+						300,-1.5,1.5);
 	
 	h2name = "r_zpeak_pas_eta";
 	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];|#eta|",
 						200,0,200,
-						60,0,6);
+						300,-1.5,1.5);
 	
 	h2name = "r_zpeak_tot_pt";
 	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];pt [GeV]",
@@ -409,7 +413,17 @@ void Histogrammer::initSelection( string const& s ) {
 	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";#Delta #phi;#Delta #eta",
 						330,-3.3,3.3, 	// 0.02 steps
 						240,-6,6);		// 0.05 steps
-		
+
+	h2name = "r_etag_zpeak_tot_eta";
+	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];|#eta|",
+						200,0,200,
+						150,0,1.5);
+	
+	h2name = "r_etag_zpeak_pas_eta";
+	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];|#eta|",
+						200,0,200,
+						150,0,1.5);
+
 	h2name = "r_etag_zpeak_tot_pt";
 	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];pt [GeV]",
 						200,0,200,
@@ -440,25 +454,52 @@ void Histogrammer::initSelection( string const& s ) {
 						200,0,200,
 						15,0,15);
 	
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// fake rate, photon tag
+	// medium id
 	
+	h2name = "f_medium_zpeak_tot_eta";
+	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];|#eta|",
+						200,0,200,
+						300,-1.5,1.5);
 	
-/*
-	hname = "diphoton_EBEB";
-	h[hname] = TH1F((hname+"_"+s).c_str(),";m [GeV];counts",2100,0,2100);
+	h2name = "f_medium_zpeak_pas_eta";
+	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];|#eta|",
+						200,0,200,
+						300,-1.5,1.5);
+	
+	h2name = "f_medium_zpeak_tot_pt";
+	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];pt [GeV]",
+						200,0,200,
+						250,0,250);
+	
+	h2name = "f_medium_zpeak_pas_pt";
+	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];pt [GeV]",
+						200,0,200,
+						250,0,250);
+	
+	h2name = "f_medium_zpeak_tot_nvtx";
+	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];N_{vtx}",
+						200,0,200,
+						60,0,60);
 
-	// TH2F (const char *name, const char *title, 
-	//	Int_t nbinsx, Double_t xlow, Double_t xup, 
-	//	Int_t nbinsy, Double_t ylow, Double_t yup)
+	h2name = "f_medium_zpeak_pas_nvtx";
+	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];N_{vtx}",
+						200,0,200,
+						60,0,60);
+
+	h2name = "f_medium_zpeak_tot_njet";
+	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];N_{jet}",
+						200,0,200,
+						15,0,15);
+
+	h2name = "f_medium_zpeak_pas_njet";
+	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];N_{jet}",
+						200,0,200,
+						15,0,15);
 	
-	
-	h2name = "diphoton_ht-EBEB";
-	h2[h2name] = TH2F((h2name+"_"+s).c_str(),";m [GeV];Ht< [GeV]",
-						2100,0,2100,
-						2000,0,2000);
-*/
 	
 	fOutput->AddAll(gDirectory->GetList());
-	
 } // init selection
 
 /*******************************************************************************************
@@ -490,6 +531,7 @@ void Histogrammer::Init(TTree *tree_)
 		nTotalEvents = hcut->GetBinContent(nTotalEvents_bin);
 	}
 	
+	cout << "total events: " << nTotalEvents << endl;
 	cout << "rawfile: " << getRawFileName(fReader.GetTree()->GetCurrentFile()->GetName()) << endl;
 	
 	cout << "end of Init()" << endl;
@@ -509,7 +551,7 @@ void Histogrammer::resetSelection() {
 	selBJets.clear();
 	selElectrons.clear();
 	selMuons.clear();
-	selPFCandidates.clear();
+	//selPFCandidates.clear();
 	selPhotons2.clear();
 	selJets2.clear();
 	selBJets2.clear();
@@ -578,9 +620,11 @@ Bool_t Histogrammer::Process(Long64_t entry)
 	//if(Nnum > 100000) return kTRUE;
 	
 	// counter output
-	//if((Nnum % 100000) == 0) cout << "event " << Nnum << " done... " << endl;
-	
-	
+	if((Nnum % 200000) == 0){
+			
+			cout << "event " << Nnum << " done... \t";
+			cout << float(Nnum)/float(nTotalEvents)*100. << " %" << endl;
+		} 
 	
 	resetSelection();
 	
@@ -600,8 +644,10 @@ Bool_t Histogrammer::Process(Long64_t entry)
 	}
 */
 	
-	int ph = 0,
-	_c = 0;
+	int 	ph = 0,
+			ph2 = 0,
+			_c = 0;
+	
 	
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//
@@ -645,12 +691,12 @@ Bool_t Histogrammer::Process(Long64_t entry)
 	if(*TriggerR9Id85 && photons.GetSize() == 2){
 		Ncounts[0] ++;
 		// tag:
-		if(	photons[ph].p.Pt() > 25 && 
+		if(	photons[ph].p.Pt() > 40 && 
 			photons[ph].hasPixelSeed && 
 			fabs(photons[ph].p.Eta()) < 1.4442){
 				// probe
 				ph = 1;
-				if(	photons[ph].p.Pt() > 10 && 
+				if(	photons[ph].p.Pt() > 40 && 
 					fabs(photons[ph].p.Eta()) < 1.4442){
 						// fake rate: FILL TOTAL
 						h2name = "f_zpeak_tot_pt";
@@ -660,7 +706,7 @@ Bool_t Histogrammer::Process(Long64_t entry)
 						h2name = "f_zpeak_tot_njet";
 						h2[h2name].Fill(lvTemp[_c].M(), jets.GetSize(), selW);
 						h2name = "f_zpeak_tot_eta";
-						h2[h2name].Fill(lvTemp[_c].M(), fabs(photons[ph].p.Eta()), selW);
+						h2[h2name].Fill(lvTemp[_c].M(), photons[ph].p.Eta(), selW);
 						
 						if(!photons[ph].hasPixelSeed){
 							// fake rate: FILL PASSED
@@ -671,18 +717,18 @@ Bool_t Histogrammer::Process(Long64_t entry)
 							h2name = "f_zpeak_pas_njet";
 							h2[h2name].Fill(lvTemp[_c].M(), jets.GetSize(), selW);
 							h2name = "f_zpeak_pas_eta";
-							h2[h2name].Fill(lvTemp[_c].M(), fabs(photons[ph].p.Eta()), selW);
+							h2[h2name].Fill(lvTemp[_c].M(), photons[ph].p.Eta(), selW);
 						}
 				}
 		}
 		ph = 1; // change photons
 		// tag:
-		if(	photons[ph].p.Pt() > 25 && 
+		if(	photons[ph].p.Pt() > 40 && 
 			photons[ph].hasPixelSeed && 
 			fabs(photons[ph].p.Eta()) < 1.4442){
 				// probe
 				ph = 0;
-				if(	photons[ph].p.Pt() > 10 && 
+				if(	photons[ph].p.Pt() > 40 && 
 					fabs(photons[ph].p.Eta()) < 1.4442){
 						// fake rate: FILL TOTAL
 						h2name = "f_zpeak_tot_pt";
@@ -692,7 +738,7 @@ Bool_t Histogrammer::Process(Long64_t entry)
 						h2name = "f_zpeak_tot_njet";
 						h2[h2name].Fill(lvTemp[_c].M(), jets.GetSize(), selW);
 						h2name = "f_zpeak_tot_eta";
-						h2[h2name].Fill(lvTemp[_c].M(), fabs(photons[ph].p.Eta()), selW);
+						h2[h2name].Fill(lvTemp[_c].M(), photons[ph].p.Eta(), selW);
 						
 						if(!photons[ph].hasPixelSeed){
 							// fake rate: FILL PASSED
@@ -703,7 +749,7 @@ Bool_t Histogrammer::Process(Long64_t entry)
 							h2name = "f_zpeak_pas_njet";
 							h2[h2name].Fill(lvTemp[_c].M(), jets.GetSize(), selW);
 							h2name = "f_zpeak_pas_eta";
-							h2[h2name].Fill(lvTemp[_c].M(), fabs(photons[ph].p.Eta()), selW);
+							h2[h2name].Fill(lvTemp[_c].M(), photons[ph].p.Eta(), selW);
 						}
 				}
 		}
@@ -863,15 +909,87 @@ Bool_t Histogrammer::Process(Long64_t entry)
 	
 }	//method end
 	
+	resetSelection();
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//
+	// Tag and Probe Method with a photon object as tag
+	//
+	// MEDIUM working point for the probe object
+	//
+	// Ncounts 60-69
+	//
+	// FAKERATE: f = Neg/(2*Nee + Neg)
+	//
+	// here, the "total" histograms contain: 2*Nee + Neg
+	// while the "passed" histograms contain: Neg
+	//
+	// 60: Neg
+	// 61: 2*Nee
+	//
+{	// method start
+	_c = 0;
+	ph = 0;
+	ph2 = 0;
 	
+	// calculate four vector of all photon objects
+	for(auto& p: photons){
+		vTemp[_c] = vTemp[_c] + p.p;
+		Etemp[_c] += p.p.Mag();
+	}
 	
+	lvTemp[_c].SetVect(vTemp[_c]);
+	lvTemp[_c].SetE(Etemp[_c]);
 	
+
+	/**
+	 *
+		TriggerDiphoton_Primary;
+		TriggerDiphoton_Contr01;
+		TriggerDiphoton_Contr02;
+		TriggerDiphoton_Contr03;
+	 * 
+	 * */
+
+}	// method end
 	
+	resetSelection();
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//
+	// categorize events by Weinberg selection
+	//
+	// MEDIUM working point for the probe object
+	//
+	// Ncounts 70-79
+	//
+	// FAKERATE: f = Neg/(2*Nee + Neg)
+	//
+	// here, the "total" histograms contain: 2*Nee + Neg
+	// while the "passed" histograms contain: Neg
+	//
+	// 60: Neg
+	// 61: 2*Nee
+	//
+{	// method start
 	
+	/*
+	if(photons.GetSize() >= 2){
+		// loop all photon objects
+		for(int ip=0, np=photons.GetSize(); ip<np; ip++){
+			// construct all combinations:
+			// second loop
+			for(int iq=0; iq<np; iq++){
+				
+				
+				
+			}
+			
+			
+			
+		}
+	}
+	*/
 	
-	
-	
-	
+}	// method end
 	
 	
 // comment catcher */
@@ -895,9 +1013,7 @@ void Histogrammer::SlaveTerminate()
 	// have been processed. When running with PROOF SlaveTerminate() is called
 	// on each slave server.
 	
-	
 	cout << "\nSlaveTerminate()" << endl;
-	
 	
 }
 

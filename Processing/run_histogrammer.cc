@@ -4,8 +4,8 @@
 
 #include <sys/utsname.h>
 
-// check operating system and define the file path
-string FilePath(){
+// check operating system and define the file paths
+void SystemPath(string & filepath, string & dropbox){
 	struct utsname uts;
 	uname(&uts);
 	/*
@@ -16,6 +16,7 @@ string FilePath(){
 	cout << "uts.machine: " << uts.machine << endl;
 	*/
 	string path = "/user/rmeyer/mergedNTuples/"; // default
+	
 	string version(uts.version);
 	string ubuntu = "Ubuntu";	// if the version string contains ubuntu, its the laptop
 								// 
@@ -24,53 +25,61 @@ string FilePath(){
 	if (version.find(ubuntu) != string::npos) {
 		//	cout << "ubuntu found!" << '\n';
 		path = "/home/jack/";
+		filepath = path + "data_uni/mergedntuples/";
 	}
 	else {
-		//	cout << "ubuntu not found!" << '\n';
+		//	cout << "ubuntu not found! choose scientific" << '\n';
 		path = "/user/rmeyer/";
+		filepath = path + "mergedNTuples/";
 	}
 	
-	return path + "Dropbox/data_uni/";
-}
+	dropbox = path + "Dropbox/data_uni/";
+	
+	//return path + "Dropbox/data_uni/";
+} // SystemPath()
 
-
-
-void run_histogrammer(string comment, bool allData = false){
+void run_histogrammer(bool allData = false, string comment = "no comment"){
 	
 	bool run = true;
 	
 	//bool allData = false;
+	cout << "allData: " << allData << endl;
+	cout << "comment: " << comment << endl;
+	string filepath, dropbox;
 	
-	string basicpath = FilePath();
+	SystemPath(filepath, dropbox);
 	
-	// tree file
-	//string path = "/user/rmeyer/mergedNTuples/";
-	string path = basicpath + "mergedntuples/" ;
+	cout << "filepath: " << filepath << endl;
+	cout << "dropbox: " << dropbox << endl;
 	
-	string protocolfile = basicpath + "root_selectorFiles/protocol_hist.txt";
+	string protocolfile = dropbox + "root_selectorFiles/protocol_hist.txt";
 	
-	int kk = 0;
+	cout << "protocol: " << protocolfile << endl;
+	
+	int kk = 4;
 	int Ndatasets = 6;
 	
 	string datasets[] = {	"DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root",// 0
 							"TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_v01.root",// 1
 							"WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root",	// 2
 							"ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root", // 3
-							"DoubleEG_Run2015D-05Oct2015-v1.root",	// data  4
-							"DoubleEG_Run2015D-PromptReco-v4.root"	// data  5
+							"DoubleEG_Run2015D-05Oct2015-v1_v02.root",	// data  4
+							"DoubleEG_Run2015D-PromptReco-v4_v02.root"	// data  5
 						};
 	
 	//string file= path+"DY_v1.root"; // mc sample with particle flow candidates
-	string file= path + datasets[0] ;
+	string file= filepath + datasets[kk] ;
 	
 	//cout << "printed all" << endl;
 	//cout << *(datasets+5) << endl;
 	
-	
+	cout << "file: " << file << endl;
 	//string file="../../cms_sw/NTupel/DYJetsToLL_M-50_nTuple.root";
 	//string file="../../NTupel/DY_FullSim.root";
 	//string file="../../cms_sw/NTupel/myTestTree_unpacked_6_pt095charged.root";
 	//string file="../../cms_sw/myTrees/mcDY_1446802738.root";
+	
+	gSystem->Load("pluginTreeWriterTreeWriterAuto.so");
 	
 	if(run){		// if boolean is true
 		
@@ -79,12 +88,14 @@ void run_histogrammer(string comment, bool allData = false){
 		if(allData){		// analyse all data sets
 		
 			cout << "allData" << endl;
-			for(; kk < Ndatasets; kk++){		//loop datasets
-				cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-				cout << "++++++++++++++++++++++ "<<kk<<" ++++++++++++++++++++++++++++++++" << endl;
+			for(kk = 0; kk < Ndatasets; kk++){		//loop datasets
+				cout << "++++++++++++++++++++++++++++++++";
+				cout << "++++++++++++++++++++++++++++++++" << endl;
+				cout << "+++++++++++++++++++++++++++++ "<<kk;
+				cout <<" ++++++++++++++++++++++++++++++++" << endl;
 				cout << datasets[kk] << endl;
 				
-				file = path+datasets[kk];
+				file = filepath+datasets[kk];
 				
 				ifstream f(file.c_str());
 				if(!f.good()) {
@@ -95,7 +106,7 @@ void run_histogrammer(string comment, bool allData = false){
 				
 				cout << file.c_str() << endl;
 			
-				gSystem->Load("pluginTreeWriterTreeWriterAuto.so");
+				//gSystem->Load("pluginTreeWriterTreeWriterAuto.so");
 				cout << "successfull" << endl;
 		
 				// create chain
@@ -125,7 +136,11 @@ void run_histogrammer(string comment, bool allData = false){
 		} // if allData
 		
 		if(!allData){		// only one data set
-			cout << "not allData" << endl;
+			cout << "++++++++++++++++++++++++ not allData ";
+			cout <<" ++++++++++++++++++++++++++" << endl;
+			cout << "+++++++++++++++++++++++++++++ "<<kk;
+			cout <<" ++++++++++++++++++++++++++++++++" << endl;
+			cout << datasets[kk] << endl;
 			ifstream f(file.c_str());
 			if(!f.good()) {
 				cout << "No file found, just compile." << endl;
@@ -135,7 +150,8 @@ void run_histogrammer(string comment, bool allData = false){
 			
 			cout << file.c_str() << endl;
 			
-			gSystem->Load("pluginTreeWriterTreeWriterAuto.so");
+			//gSystem->Load("pluginTreeWriterTreeWriterAuto.so");
+			
 			cout << "successfull" << endl;
 		
 			// create chain

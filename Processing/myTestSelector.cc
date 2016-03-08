@@ -1,159 +1,137 @@
-// little script for test studies
+/**
+ *  little script for test studies
+**/
+
+// /*
+#include <ctime>
+#include <sstream>
+#include <iostream>
+#include <fstream>
+
+#include <algorithm>
+#include <string>
+
+#include "TROOT.h"
+#include "TChain.h"
+#include "TFile.h"
+#include "TSelector.h"
+#include "TTreeReader.h"
+#include "TTreeReaderValue.h"
+#include "TTreeReaderArray.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TProfile.h"
+#include "TEfficiency.h"
+
+#include "TRandom.h"
+#include "TRandom3.h"
+
+#include <TCanvas.h>
+#include <TGraph.h>
+
+#include <TLorentzVector.h>
+#include <TVector3.h>
 
 #include "TreeParticles.hpp"
+//#include "/home/home4/institut_1b/rmeyer/cms_sw/CMSSW_7_4_14/src/TreeWriter/TreeWriter/plugins/TreeParticles.hpp"
 
 #include <map>
 #include <sys/utsname.h>
 
+#include "myTestSelector.hpp"
+// */
+
 using namespace tree;
 using namespace std;
 
-
-// check operating system and define the file path
-string FilePath(){
-	struct utsname uts;
-	uname(&uts);
-	/*
-	cout << "uts.sysname: " << uts.sysname << endl;
-	cout << "uts.nodename: " << uts.nodename << endl;
-	cout << "uts.release: " << uts.release << endl;
-	cout << "uts.version: " << uts.version << endl;
-	cout << "uts.machine: " << uts.machine << endl;
-	*/
-	string path = "/user/rmeyer/mergedNTuples/"; // default
-	string version(uts.version);
-	string ubuntu = "Ubuntu";	// if the version string contains ubuntu, its the laptop
-								// 
-	
-	// search for ubuntu, otherwise its scientific
-	if (version.find(ubuntu) != string::npos) {
-		//	cout << "ubuntu found!" << '\n';
-		path = "/home/jack/";
-	}
-	else {
-		//	cout << "ubuntu not found!" << '\n';
-		path = "/user/rmeyer/";
-	}
-	
-	return path + "Dropbox/data_uni/";
-} // FilePath()
-
-
-
-void initSelection(map<string,TH1F> &h){
-	
-	
-	string name = "111";
-	h["1"] = TH1F(name.c_str(), "first; jo; joo", 10, 0, 10);
-	
-	//h["bye"] = TH1F(("bye").c_str(), "bye; no; ", 9, 0, 9);
-	//h2["hallo"] = TH2F(("hallo").c_str(), "hallo; yea; ", 10, 0, 10);
-	
-	/*
-	string s = "v1";
-	string hname, h2name;
-	
-	h2name = "f_zpeak_tot_eta";
-	h2[h2name] = TH2F((h2name + "_" + s).c_str(),";m [GeV];|#eta|",
-						200,0,200,
-						60,0,6);
-	
-	hname = "pt_spectrum";
-	h[hname] = TH1F("a1", ";bla;jo",100, 0, 100);
-	
-	// */
+void resetSelection(){
+	// moved to myTestSelector.hpp
 }
 
-
-void selector(string file){
-	cout << "selector()" << endl;
-	//cout << file << endl;
-	
-	TFile *f = new TFile(file.c_str());
-	TTreeReader reader("TreeWriter/eventTree", f);
-	
-	// initialize branches
-	TTreeReaderArray<Photon> photons(reader, "photons");
-	TTreeReaderArray<Jet> jets(reader, "jets");
-	TTreeReaderArray<Electron> electrons(reader, "electrons");
-	TTreeReaderArray<Muon> muons(reader, "muons");
-	TTreeReaderArray<Particle> genJets(reader, "genJets");
-	TTreeReaderArray<GenParticle> genParticles(reader, "genParticles");
-	TTreeReaderValue<Float_t> pu_weight(reader, "pu_weight");
-	TTreeReaderValue<Char_t> mc_weight(reader, "mc_weight");
-
-	TTreeReaderValue<Bool_t> Trigger( reader, 
-		"HLT_Photon36_R9Id85_OR_CaloId24b40e_Iso50T80L_Photon22_AND_HE10_R9Id65_Eta2_Mass15_v");
-	
-	Float_t selW = 1.;
-	
-	// histograms
-	map<string,TH1F> h;				// 1d histograms
-	map<string,TH2F> h2;			// 2d histograms
-	
-	//initSelection(h, h2);
-	
-	initSelection(h);
-	
-	
-	
-	cout << h["111"].GetName() << endl;
+void initSelection(map<string,TH1F> &h, map<string,TH2F> &h2){
+	// moved to myTestSelector.hpp
 }
 
-
-
-
-
-
-
-
-void myTestSelector(int dset){
+void myTestSelector(){
 	
+	//gROOT->Reset();
+	//gSystem->Load("pluginTreeWriterTreeWriterAuto.so");
 	
-	int set = 0;
+	string filepath, dropbox;
 	
-	set = dset;
-	
-	string basicpath = FilePath();
-	string path = basicpath + "mergedntuples/" ;
+	// filepath and dropbox path changes, depending on system
+	SystemPath(filepath, dropbox);
 	
 	string datasets[] = {	
 						"DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root",// 0
 						"TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_v01.root",// 1
 						"WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root",	// 2
 						"ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root", // 3
-						"DoubleEG_Run2015D-05Oct2015-v1.root",	// data  4
-						"DoubleEG_Run2015D-PromptReco-v4.root"	// data  5
+						"DoubleEG_Run2015D-05Oct2015-v1_v02.root",	// 4
+						"DoubleEG_Run2015D-PromptReco-v4_v02.root",	// 5
+						"DY_v1.root", // 6
+						"DYJetsToLL_M-50_nTuple.root", // 7
 					};
 	
-	string file = path + datasets[set];
+	double start_time = time(NULL); // measure running time
 	
-	cout << "Open file: " << file << endl;
+	// histograms
+	map<string,TH1F> h;			// 1d histograms
+	map<string,TH2F> h2;		// 2d histograms
 	
-	selector(file);
+	// ////////////////////////////////////////////////////////////////////////////////////////////
+	//  short diphoton fakerate reconstruction
+	//  (from Marc and Arka)
+	/*
+	for(int i=4; i<=5; i++){
+		cout << endl;
+		cout << "**************************************************************** " << i;
+		cout << " *****************************************************************"<<endl;
+		f_diphoton_fakerate(h, h2, filepath+datasets[i]);
+	}
+	writeToFile(h, h2, "/DoubleEG_diphoton_fakerate.root");
+	// **/
+	
+	// ////////////////////////////////////////////////////////////////////////////////////////////
+	//  simple gen matching fakerate from drell yan sample only
+	/*
+	int set = 0;
+	string dataset = filepath + datasets[set];
+	
+	f_genmatch_fakerate_DY(h, h2, dataset);
+	string selectorname = "/genmatch_fakerate_"; //DYJetsToLL_M-50_nTuple.root";
+	writeToFile(h, h2, selectorname+datasets[set]);
+	// */
+	
+	// ////////////////////////////////////////////////////////////////////////////////////////////
+	//  fakerate using tag and probe (DPG)
+	/*
+	// monte carlo:
+	// drell yan sample
+	int set = 0;
+	string dataset = filepath + datasets[set];
+	f_tagnprobe_fakerate(h, h2, dataset);
+	string selectorname = "/DY_tagnprobe_fakerate.root";
+	writeToFile(h, h2, selectorname+datasets[set]);
+	// */
+	
+	// ////////////////////////////////////////////////////////////////////////////////////////////
+	//  closure test on ttbar (DPG)
+	
+	// monte carlo:
+	// ttbar sample
+	
+	int set = 0;
+	string dataset = filepath + datasets[set];
+	f__closure(h, h2, dataset);
+	string selectorname = "/DY_fakerate_closure.root";
+	writeToFile(h, h2, selectorname+datasets[set]);
+	
+	// */
 	
 	
+	double end_time = 1.*( time(NULL));
+	cout << "Runtime ~" << (end_time - start_time)/1 << " sec." << endl;
 	
-	
-	
-	
-	
-	
-	
-} // myTestSelector()
+} // myTestSelector() */
 
-
-
-
-
-
-
-
-
-
-int main(){
-	cout << "called!" << endl;
-	
-	return 0;
-}
-// */

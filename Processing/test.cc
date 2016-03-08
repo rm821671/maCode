@@ -7,6 +7,8 @@
 
 #include <sys/utsname.h>
 
+#include "test_bib.hpp"
+
 template <typename T> int sign(T val) {
    	return (T(0) < val) - (val < T(0));
 	}
@@ -261,14 +263,30 @@ void checkString(){
 }
 
 
+void stringRef(string &s){
+	
+	s = "ciao";
+}
+
 
 void test(){
 	
 	
 	//stringtest();
-	sysinfo();
+	//sysinfo();
+	int a=3, b=5;
+	cout << a << b << endl;
 	
-	checkString();
+	string s = "hallo";
+	cout << "before: " << s << endl;
+	
+	stringRef(s);
+	
+	cout << "after: " << s << endl;
+	
+	
+	
+	//checkString();
 	
 	//writedata();
 	

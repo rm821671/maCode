@@ -357,6 +357,17 @@ class mydict(dict):
 
 def dictionaries():
 	
+	u = {}
+	u[1] = None
+	
+	if 3 not in u.keys():
+		print "no u3!"
+	else:
+		print "u3!"
+	
+	
+	
+	
 	''''
 	k = None
 	
@@ -386,6 +397,8 @@ def dictionaries():
 	
 	
 	a = {"a": {"b": 0, "c": 1, "d": {5: "hallo", 8: "peter"}}, "uno": "yea"}
+	
+	print "a.itervalues: ", a.itervalues()
 	
 	t = dict.fromkeys(a.keys())
 	q = a.copy()

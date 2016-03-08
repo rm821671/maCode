@@ -251,8 +251,6 @@ class myCanvasRatio(myCanvas):
 		
 
 
-
-
 class Ratio(object):
 	'''
 	ratio class.

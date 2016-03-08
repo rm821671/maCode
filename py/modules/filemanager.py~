@@ -16,8 +16,6 @@ from array import array
 
 
 
-
-
 class FileSaver():
 	'''
 	
@@ -36,9 +34,6 @@ class FileSaver():
 		
 		# self.folder = 
 		
-		
-		
-	
 	
 	def save(self, obj, name):
 		#print "name: ",name
@@ -68,9 +63,9 @@ class FileSaver():
 		f.Close()
 		
 		
-	
-	
-	
+
+
+
 
 '''
 class FileReader():
@@ -117,7 +112,6 @@ class FileManager():
 		else:
 			path = "no path"
 		return path
-	
 	
 	def GiveOutputString(self,strIn):
 		'''
@@ -295,9 +289,10 @@ class FileManager():
 		
 		h = {} # histograms
 		h2 = {} # 2d histograms
+		h3 = {} # 3d histograms
 		stacks = {}
 		
-		print "read histo()"
+		#print "read histo()"
 		
 		# read files
 		for ll in range(total_lines-lineoff-lines+1,total_lines-lineoff+1):
@@ -321,27 +316,77 @@ class FileManager():
 				if "globalEcal" in kgn: # skip this mysterious histogram...
 					continue
 				dt = data.Get(kgn)
-				if isinstance(dt, rt.TH1F):
+				if isinstance(dt, rt.TH1):
 					h[hname][kgn] = data.Get(kgn)
 					h[hname][kgn].SetDirectory(0)
-				if isinstance(dt, rt.TH2F):
+				if isinstance(dt, rt.TH2):
 					h2[hname][kgn] = data.Get(kgn)
 					h2[hname][kgn].SetDirectory(0)
-			
-			
+				if isinstance(dt, rt.TH3):
+					h3[hname][kgn] = data.Get(kgn)
+					h3[hname][kgn].SetDirectory(0)
 			
 			data.Close()
 		
+		return h, h2, h3
 		
-		
-		return h, h2
-		
-	
-	
 	
 
 
+class Parameters():
+	'''
+	a little class to handle parameters for methods
+	'''
+	def __init__(self):
+		testfloat = 0.
+		
+		# define the attributes here
+		
+		self.variables = {} # all variables and dependencies
+		
+		self.stacks = None # stacks from mc
+		self.data = None # data
+		self.legends = None # legends
+		
+		self.fs = None #filesaver
+		
+		self.hproj = {} # projections
+		
+		self.zrng = [80, 100]
+		
+		
+	
+	def addvar(self, v, binedges, *pars):
+		# v: string of the variable name
+		# binrange: list with bin edges, like [0, 100]
+		# valrange:
+		if v not in self.variables.keys():
+			self.variables[v] = {}
+		self.variables[v]["bins"] = binedges
+		self.variables[v]["range"] = range(binedges[0], binedges[1])
+		self.variables[v]["effrng"] = range(binedges[0], binedges[1])
+		
+		
+	def addfit(self, v, f):
+		# f has do be a TF1 for the fit
+		if v not in self.variables.keys():
+			self.variables[v] = {}
+		self.variables[v]["fit"] = f.Clone()
+		
+	def addeffrng(self, v, rng):
+		# adds a plot x range for the efficiency
+		if v not in self.variables.keys():
+			self.variables[v] = {}
+		self.variables[v]["effrng"] = rng
 
+
+class ParVariables(dict):
+	'''
+	handle the variables 
+	'''
+	def add(self, var):
+		self[var] = 0
+	
 
 
 

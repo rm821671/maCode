@@ -10,6 +10,8 @@ import calendar
 import os
 from array import array
 
+import json
+
 from modules import filemanager as fm
 
 
@@ -51,10 +53,74 @@ def tagfilter(obj, tag):
 			htemp[key].pop(o, None)
 	return htemp
 
+def ratio_his(h1, h2):
+	# returns h1/h2
+	#
+	h = h1.Clone()
+	h.Divide(h2)
+	yax = h.GetYaxis()
+	if yax:
+		yax.SetNdivisions(5)
+	mx = h.GetBinContent(h.GetMaximumBin())
+	mn = h.GetBinContent(h.GetMinimumBin())
+	rg = mx - mn
+	h.SetMaximum(mx+rg*.1)
+	h.SetMinimum(mn-rg*.1)
+	h.SetLineColor(rt.kBlack)
+	h.SetMarkerStyle(rt.kOpenCircle)
+	return h
+
+def ratio_fhis(h1, f1):
+	# returns a histogram where in each bin
+	# h1/f1(bin)
+	#
+	h = h1.Clone()
+	h.Sumw2()
+	
+	binmin = h.GetMinimumBin()
+	binmax = h.GetMaximumBin()
+	
+	for i in range(binmin, binmax+1):
+		val = h.GetBinContent(i)
+		x = h.GetXaxis().GetBinCenter(i)
+		fx = f.Eval(x)
+		h.SetBinContent(i, val/fx)
+	
+	return h
+
+def ratio_fgraph(g1, f1):
+	
+	return 0
+
+
+def read_dict(filename):
+	# reads a textfile with a dictionary
+	with open(filename, "r") as f:
+		s = f.read()
+	json_str = s.replace("'", "\"")
+	d = json.loads(json_str)
+	return d
+
+def write_dict(filename, d):
+	# writes a dictionary to a textfile
+	json_str = json.dumps(d)
+	with open(filename, "w") as f:
+		f.write(json_str)
+	return 0
 
 
 
-
+def calc_f_hist(he, hg, c=1):
+	# given he and hg, hf is calculated by
+	# hf = hg/(c*he+hg)
+	# Use c=1 or c=2.
+	h = he.Clone()
+	h2 = hg.Clone()
+	if c==2:
+		h2.Add(hg)
+	h2.Add(he)
+	h.Divide(h2)
+	return h
 
 
 
@@ -98,7 +164,7 @@ def giveDataPath(key):
 				]
 	
 	
-	path = _f.path + "mergedntuples/";#
+	path = _f.filepath
 	for k in datasets:
 		if key in k:
 			return path+k
