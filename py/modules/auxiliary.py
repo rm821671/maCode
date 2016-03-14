@@ -12,6 +12,8 @@ from array import array
 
 import json
 
+import copy
+
 from modules import filemanager as fm
 
 
@@ -24,7 +26,6 @@ def checkRebinningConsistence( axis, newBinning ):
 	for i in newBinning:
 		if i not in oldBinning: print "New bin edge is not compatible with old binning", i
 
-
 def rebin( h, binEdges ):
 	# usage: h = rebin( hold, range(340,2001,20) )
 	checkRebinningConsistence(h.GetXaxis(), binEdges)
@@ -32,8 +33,6 @@ def rebin( h, binEdges ):
 	hname = h.GetName() + "_rb"
 	hnew = h.Rebin( len(binEdges)-1, hname, binEdgesArr )
 	return hnew
-
-
 
 def tagfilter(obj, tag):
 	# Needs a dictionary of TObjects from the form:
@@ -53,7 +52,7 @@ def tagfilter(obj, tag):
 			htemp[key].pop(o, None)
 	return htemp
 
-def ratio_his(h1, h2):
+def ratio_hishis(h1, h2):
 	# returns h1/h2
 	#
 	h = h1.Clone()
@@ -68,6 +67,7 @@ def ratio_his(h1, h2):
 	h.SetMinimum(mn-rg*.1)
 	h.SetLineColor(rt.kBlack)
 	h.SetMarkerStyle(rt.kOpenCircle)
+	h.GetYaxis().SetTitle("ratio")
 	return h
 
 def ratio_fhis(h1, f1):
@@ -86,11 +86,29 @@ def ratio_fhis(h1, f1):
 		fx = f.Eval(x)
 		h.SetBinContent(i, val/fx)
 	
+	h.SetMarkerStyle(rt.kOpenCircle)
+	h.GetYaxis().SetTitle("data/fit")
 	return h
 
 def ratio_fgraph(g1, f1):
+	# 
+	#
+	g = g1.Clone()
+	#g.GetFunction(f1.GetName()).SetBit(rt.kNotDraw)
+	gdim = g1.GetN()
+	x, y = rt.Double(0), rt.Double(0)
+	#xset = rt.Double(0)
+	for i in range(0, gdim):
+		#print "point", g1.GetPoint(i, x, y), x, y
+		g1.GetPoint(i, x, y)
+		ytemp = f1.Eval(x)
+		g.SetPoint(i, x, y/ytemp)
 	
-	return 0
+	#print xarr
+	#print yarr
+	g.SetMarkerStyle(rt.kOpenCircle)
+	g.GetYaxis().SetTitle("data/fit")
+	return g
 
 
 def read_dict(filename):

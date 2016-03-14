@@ -30,6 +30,8 @@ class FileSaver():
 		self.filename = self.path+filename # 
 		self.treepath = treepath + '/' # e.g. 'HtBins'
 		
+		self.dropbox = _fm.dropbox
+		
 		# self.simulation = simulation
 		
 		# self.folder = 

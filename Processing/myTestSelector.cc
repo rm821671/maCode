@@ -108,11 +108,17 @@ void myTestSelector(){
 	/*
 	// monte carlo:
 	// drell yan sample
-	int set = 0;
+	int set = 2;
 	string dataset = filepath + datasets[set];
 	f_tagnprobe_fakerate(h, h2, dataset);
-	string selectorname = "/DY_tagnprobe_fakerate.root";
-	writeToFile(h, h2, selectorname+datasets[set]);
+	string selectorname;
+	switch(set){
+		case 0: selectorname = "/DY_tagnprobe_fakerate.root"; break;
+		case 1: selectorname = "/TT_tagnprobe_fakerate.root"; break;
+		case 2: selectorname = "/WG_tagnprobe_fakerate.root"; break;
+		case 3: selectorname = "/ZG_tagnprobe_fakerate.root"; break;
+	}
+	writeToFile(h, h2, selectorname);
 	// */
 	
 	// ////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,13 +126,28 @@ void myTestSelector(){
 	
 	// monte carlo:
 	// ttbar sample
-	
+	/*
 	int set = 0;
 	string dataset = filepath + datasets[set];
 	f__closure(h, h2, dataset);
 	string selectorname = "/DY_fakerate_closure.root";
-	writeToFile(h, h2, selectorname+datasets[set]);
+	writeToFile(h, h2, selectorname);
 	
+	// */
+	
+	// ////////////////////////////////////////////////////////////////////////////////////////////
+	// create distributions
+	int set=0;
+	string dataset = filepath + datasets[set];
+	f_distribution_creator(h, h2, dataset);
+	string selectorname = "/data_distributions.root";
+	switch(set){
+		case 0: selectorname = "/DY_distributions.root"; break;
+		case 1: selectorname = "/TT_distributions.root"; break;
+		case 2: selectorname = "/WG_distributions.root"; break;
+		case 3: selectorname = "/ZG_distributions.root"; break;
+	}
+	writeToFile(h, h2, selectorname);
 	// */
 	
 	

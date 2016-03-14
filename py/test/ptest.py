@@ -502,8 +502,24 @@ def loops():
 	print b
 	
 
+def mylists():
+	
+	a = range(0, 6)
+	
+	print a
+	
+	for i in a:
+		print i, a[0:i], "\t", a[i:6]
+	
+	
+	
+	return 0
+
+
 def main():
 	print sys.argv
+	
+	mylists()
 	
 	#funfun()	
 	#files()	
@@ -515,7 +531,7 @@ def main():
 	#frametest()
 	#parseaxis()
 	#loops()
-	dictionaries()
+	#dictionaries()
 	#systemtest()
 	
 	return 0
