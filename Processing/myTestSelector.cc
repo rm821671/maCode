@@ -63,8 +63,11 @@ void myTestSelector(){
 	SystemPath(filepath, dropbox);
 	
 	string datasets[] = {	
-						"DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root",// 0
-						"TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_v01.root",// 1
+						
+						//"DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root"
+						"DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v02.root",// 0
+						//"TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_v01.root",
+						"TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_v02.root",// 1
 						"WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root",	// 2
 						"ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root", // 3
 						"DoubleEG_Run2015D-05Oct2015-v1_v02.root",	// 4
@@ -137,7 +140,8 @@ void myTestSelector(){
 	
 	// ////////////////////////////////////////////////////////////////////////////////////////////
 	// create distributions
-	int set=0;
+	/*
+	int set=1;
 	string dataset = filepath + datasets[set];
 	f_distribution_creator(h, h2, dataset);
 	string selectorname = "/data_distributions.root";
@@ -148,6 +152,23 @@ void myTestSelector(){
 		case 3: selectorname = "/ZG_distributions.root"; break;
 	}
 	writeToFile(h, h2, selectorname);
+	// */
+	
+	// ////////////////////////////////////////////////////////////////////////////////////////////
+	// debugging genmatch and tagnprobe
+	int set=0;
+	string dataset = filepath + datasets[set];
+	f_genmatch_tagnprobe(h, h2, dataset);
+	string selectorname = "debug_genMatchTagnProbe.root";
+	string ss = "/data_";
+	switch(set){
+		case 0: ss = "/DY_"; break;
+		case 1: ss = "/TT_"; break;
+		case 2: ss = "/WG_"; break;
+		case 3: ss = "/ZG_"; break;
+	}
+	cout << ss+selectorname << endl;
+	//writeToFile(h, h2, ss+selectorname);
 	// */
 	
 	

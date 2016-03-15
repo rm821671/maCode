@@ -200,6 +200,9 @@ void f_distribution_creator(map<string,TH1F> &h, map<string,TH2F> &h2, string da
 			mindelR = 0.,
 			mindelPt = 0.;
 	
+	Photon selPhoton;
+	GenParticle selGenParticle; 
+	
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// loop the events
 	while(reader.Next()){
@@ -261,6 +264,9 @@ void f_distribution_creator(map<string,TH1F> &h, map<string,TH2F> &h2, string da
 									mindelPt = delPt;
 									
 									v = p.p;
+									
+									selPhoton = p;
+									selGenParticle = genp;
 							}
 					}
 					
@@ -271,12 +277,11 @@ void f_distribution_creator(map<string,TH1F> &h, map<string,TH2F> &h2, string da
 						h2[h2name].Fill(	mindelPt,
 											mindelR
 											);
+						
 				}
 			}
 			
 		}
-		
-		
 		Nnum++;
 	} // //////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -1078,6 +1083,347 @@ void f_tagnprobe_fakerate(map<string,TH1F> &h, map<string,TH2F> &h2, string data
 	for(int ll=0;ll<100;ll++){
 		cout << "nCounts[" << ll << "]: " << nCounts[ll] << "\t";
 	}
+	
+}
+
+void f_genmatch_tagnprobe(map<string,TH1F> &h, map<string,TH2F> &h2, string dataset){
+	cout << "f_genmatch_tagnprobe()" << endl;
+	cout << dataset << endl;
+	
+	// INITIALIZATION
+	string s = "v1";
+	string hname, h2name;
+	
+	
+	hname = "zpeak_tot";
+	h[hname] = TH1F((hname+"_"+s).c_str(), ";Events / bin;m (GeV)",400, 0, 200);
+	
+	hname = "zpeak_pas";
+	h[hname] = TH1F((hname+"_"+s).c_str(), ";Events / bin;m (GeV)",400, 0, 200);
+	
+	
+	
+	
+	
+	h2name = "gen_e_gamma_PtdelR";
+	h2[h2name] = TH2F((h2name + "_" + s).c_str(), 
+				";|p^{gen e}_{T} - p^{#gamma}_{T}|/p^{gen e}_{T}; #DeltaR(gen e, #gamma)",
+				200, 0, 2,
+				400, 0, 4);
+	h2name = "gen_e_gamma_PtdelR_cut";
+	h2[h2name] = TH2F((h2name + "_" + s).c_str(), 
+				";|p^{gen e}_{T} - p^{#gamma}_{T}|/p^{gen e}_{T}; #DeltaR(gen e, #gamma)",
+				200, 0, 2,
+				400, 0, 4);
+	
+	// **********************************************************************
+	
+	// Attention: isData is defined inverse!
+	// -->	if mc	 set true
+	// 		if data	 set false
+	// >>> renamded to isSimu
+	
+	bool isSimu;
+	isSimu = 	dataset.find("DYJetsToLL") != string::npos
+			||	dataset.find("TTGJets") != string::npos
+			||	dataset.find("WGToLNuG") != string::npos
+			||	dataset.find("ZGTo2LG") != string::npos;
+	// */
+	
+	// DATA FILE
+	TFile *f = new TFile(dataset.c_str());
+	TTreeReader reader("TreeWriter/eventTree", f);
+	
+	// initialize branches
+	TTreeReaderArray<tree::Photon> photons(reader, "photons");
+	TTreeReaderArray<tree::Jet> jets(reader, "jets");
+	TTreeReaderArray<tree::Electron> electrons(reader, "electrons");
+	TTreeReaderArray<tree::Muon> muons(reader, "muons");
+	TTreeReaderArray<tree::Particle> genJets(reader, "genJets");
+	TTreeReaderArray<tree::GenParticle> genParticles(reader, "genParticles");
+	TTreeReaderArray<tree::IntermediateGenParticle> intermediateGenParticles(
+													reader, "intermediateGenParticles");
+	TTreeReaderValue<Float_t> pu_weight(reader, "pu_weight");
+	TTreeReaderValue<Char_t> mc_weight(reader, "mc_weight");
+	TTreeReaderValue<Int_t> nGoodVertices(reader, "nGoodVertices");
+	
+	
+	Float_t selW = 1.;
+	
+	// initialize variables
+	int		Nnum = 0;
+	
+	int		nCounts[100] = {};
+	
+	int		ph = 0;
+	
+	TVector3 	v;			// array of vectors
+	TLorentzVector	lv;	// array of lorentz vectors
+	float E = 0.;
+	v.SetXYZ(0.,0.,0.);
+	lv.SetPxPyPzE(0.,0.,0.,0.);
+	
+	
+	bool gotoNextPhoton = false;
+	
+	bool matched = false;
+	
+	float 	delR = 0., 
+			delPt = 0., 
+			delRPt = 0.,
+			mindelR = 0.,
+			mindelPt = 0.;
+	
+	float	sdelR = 0.2,
+			sdelPt = 0.1;
+	
+	Photon selPhoton;
+	GenParticle selGenParticle; 
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	// loop the events
+	while(reader.Next()){
+		
+		//if(Nnum > 100000) continue;
+		
+		// counter output
+		if((Nnum % 100000) == 0){
+			cout << "\revent " << Nnum << " done... \t" << flush;
+		}
+		
+		E = 0.;
+		v.SetXYZ(0.,0.,0.);
+		lv.SetPxPyPzE(0.,0.,0.,0.);
+		
+		
+		//cout << "Nnum: " << Nnum;
+		
+		// GENERATOR MATCHING for all events
+		for(auto& interGen: intermediateGenParticles){
+			if(fabs(interGen.pdgId) == 23){ // Z boson
+				nCounts[20]++;
+				//cout << Nnum << "\t" << interGen.daughters.size() << endl;
+				for(auto& d: interGen.daughters){
+					if(abs(d.pdgId) == 11){ // electrons/positrons
+						for(auto& p: photons){
+							
+							if(	p.p.Pt() > 40. &&
+								fabs(p.p.Eta()) < 1.4442){
+							
+								delR = d.p.DeltaR(p.p);
+								delPt = fabs(d.p.Pt()-p.p.Pt())/d.p.Pt();
+								delRPt = 	sqrt(delR*delR/(sdelR*sdelR)+
+											delPt*delPt/(sdelPt*sdelPt));
+								if(delRPt < 1.){
+									//cout << p.hasPixelSeed << "\t";
+									//cout << "delR: " << delR << "\t delPt: " << delPt;
+									//cout << "\t delRPt: " << delRPt << endl;
+									
+									// DENOMINATOR
+									nCounts[21]++;
+									
+									
+									// NUMERATOR
+									if(!p.hasPixelSeed) nCounts[22]++;
+									
+								}
+							}
+						}
+					}
+					//cout << "\t" << d.pdgId;
+				}
+				
+				//getchar();
+				
+			}
+			
+		} // loop intermediate particles
+		
+		// DIPHOTON events:
+		// compare genmatch and tagnprobe
+		if(photons.GetSize() == 2){
+			
+			
+			// GENERATOR MATCHING for diphoton events
+			for(auto& interGen: intermediateGenParticles){
+				if(fabs(interGen.pdgId) == 23){ // Z boson
+					nCounts[0]++;
+					//cout << Nnum << "\t" << interGen.daughters.size() << endl;
+					for(auto& d: interGen.daughters){
+						if(abs(d.pdgId) == 11){ // electrons/positrons
+							for(auto& p: photons){
+								
+								if(	p.p.Pt() > 40. &&
+									fabs(p.p.Eta()) < 1.4442){
+								
+									delR = d.p.DeltaR(p.p);
+									delPt = fabs(d.p.Pt()-p.p.Pt())/d.p.Pt();
+									delRPt = 	sqrt(delR*delR/(sdelR*sdelR)+
+												delPt*delPt/(sdelPt*sdelPt));
+									if(delRPt < 1.){
+										//cout << p.hasPixelSeed << "\t";
+										//cout << "delR: " << delR << "\t delPt: " << delPt;
+										//cout << "\t delRPt: " << delRPt << endl;
+										
+										// Ne:
+										if(p.hasPixelSeed){
+											nCounts[10]++;
+											//cout << "gen e: " << nCounts[10];
+										}
+										
+										// Ng:
+										if(!p.hasPixelSeed){
+											nCounts[11]++;
+											//cout << "\t g: " << nCounts[11];
+										}
+									}
+								}
+							}
+						}
+						//cout << "\t" << d.pdgId;
+					}
+					
+					//getchar();
+					
+				}
+				
+			}
+			
+			nCounts[80] = 0;
+			nCounts[81] = 0;
+			
+			// TAG N PROBE
+			// calculate invariant mass
+			for(auto& p: photons){
+				v = v + p.p;
+				E += p.p.Mag();
+				
+				
+				if(	p.p.Pt() > 40 &&
+					fabs(p.p.Eta()) < 1.4442) nCounts[80]++;
+				if( p.hasPixelSeed) nCounts[81]++;
+			}
+			lv.SetVect(v);
+			lv.SetE(E);
+			
+			if(	lv.M() > 80. &&
+				lv.M() < 100. &&
+				nCounts[80] == 2 &&
+				nCounts[81] >= 1 &&
+				true){
+				
+				if(!photons[0].hasPixelSeed != !photons[1].hasPixelSeed){
+					// Neg
+					nCounts[70]++;
+				}
+				
+				if(photons[0].hasPixelSeed && photons[1].hasPixelSeed){
+					// Nee
+					nCounts[71]++;
+					
+				}
+			
+			}
+			
+			
+			if(	lv.M() > 80. &&
+				lv.M() < 100. &&
+				true){
+				
+				// tag
+				ph = 0;
+				if(	photons[ph].p.Pt() > 40 && 
+					fabs(photons[ph].p.Eta()) < 1.4442 &&
+					photons[ph].hasPixelSeed){
+						// probe
+						ph = 1;
+						if(	photons[ph].p.Pt() > 30 && 
+							fabs(photons[ph].p.Eta()) < 1.4442){
+								
+								hname = "zpeak_tot";
+								h[hname].Fill(lv.M());
+								
+								
+								
+								// Nee
+								if(photons[ph].hasPixelSeed){
+									nCounts[14]++;
+								}
+								
+								if(!photons[ph].hasPixelSeed){
+									// Neg
+									nCounts[15]++;
+									
+									hname = "zpeak_pas";
+									h[hname].Fill(lv.M());
+								}
+						}
+				}
+				ph = 1; //change photons
+				//tag
+				if(	photons[ph].p.Pt() > 40 && 
+					fabs(photons[ph].p.Eta()) < 1.4442 &&
+					photons[ph].hasPixelSeed){
+						// probe
+						ph = 0;
+						if(	photons[ph].p.Pt() > 30 && 
+							fabs(photons[ph].p.Eta()) < 1.4442){
+								
+								hname = "zpeak_tot";
+								h[hname].Fill(lv.M());
+								
+								// Nee
+								if(photons[ph].hasPixelSeed){
+									nCounts[14]++;
+								}
+								
+								if(!photons[ph].hasPixelSeed){
+									// Neg
+									nCounts[15]++;
+									
+									hname = "zpeak_pas";
+									h[hname].Fill(lv.M());
+								}
+						}
+				}
+			
+			}
+			
+			
+			/*
+			cout << "Nnum: " << Nnum << endl;
+			cout << "gen:\t Ne="<<nCounts[10]<< "\t Ng="<<nCounts[11];
+			cout << "\t f=" << float(nCounts[11])/float(nCounts[10]+nCounts[11]) << endl;
+			cout << "tnp:\t Ne="<<nCounts[14]<< "\t Ng="<<nCounts[15];
+			cout << "\t f=" << float(nCounts[15])/float(2*nCounts[14]+nCounts[15]) << endl;
+			
+			getchar();
+			
+			// */
+			
+		} // photons.GetSize() == 2
+		
+		
+		
+		Nnum++;
+	} // //////////////////////////////////////////////////////////////////////////////////////////
+	
+	cout << endl;
+	
+	cout << "Looped events: " << Nnum << endl;
+	cout << "isSimu: " << isSimu << endl;
+	
+	cout << "genmatch: f = " << float(nCounts[11])/float(nCounts[10]+nCounts[11]) << endl;
+	cout << "gentotal: f = " << float(nCounts[22])/float(nCounts[21]+nCounts[22]) << endl;
+	
+	cout << "tagprobe: f = " << float(nCounts[15])/float(nCounts[14]+nCounts[15]) << endl;
+	
+	cout << "tagdiff: f = " << float(nCounts[70])/float(nCounts[70]+2*nCounts[71]) << endl;
+	
+	for(int ll=0;ll<100;ll++){
+		cout << "nCounts[" << ll << "]: " << nCounts[ll] << "\t";
+	}
+	
 	
 }
 
