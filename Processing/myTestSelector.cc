@@ -167,7 +167,7 @@ void myTestSelector(){
 		case 2: ss = "/WG_"; break;
 		case 3: ss = "/ZG_"; break;
 	}
-	cout << ss+selectorname << endl;
+	//cout << ss+selectorname << endl;
 	//writeToFile(h, h2, ss+selectorname);
 	// */
 	
