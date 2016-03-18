@@ -68,12 +68,17 @@ void myTestSelector(){
 						"DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v02.root",// 0
 						//"TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_v01.root",
 						"TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_v02.root",// 1
-						"WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root",	// 2
-						"ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root", // 3
+						//"WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root",
+						"WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v02.root", // 2
+						// "ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root", 
+						"ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v02.root", // 3
 						"DoubleEG_Run2015D-05Oct2015-v1_v02.root",	// 4
 						"DoubleEG_Run2015D-PromptReco-v4_v02.root",	// 5
 						"DY_v1.root", // 6
 						"DYJetsToLL_M-50_nTuple.root", // 7
+						"SingleElectron_Run2015C_25ns-05Oct2015-v1.root", // 8
+						"SingleElectron_Run2015D-05Oct2015-v1.root", // 9
+						"SingleElectron_Run2015D-PromptReco-v4.root", // 10
 					};
 	
 	double start_time = time(NULL); // measure running time
@@ -156,9 +161,11 @@ void myTestSelector(){
 	
 	// ////////////////////////////////////////////////////////////////////////////////////////////
 	// debugging genmatch and tagnprobe
-	int set=0;
+	/*
+	int set=2;
 	string dataset = filepath + datasets[set];
-	f_genmatch_tagnprobe(h, h2, dataset);
+	//f_genmatch_tagnprobe(h, h2, dataset);
+	f_genmatch_tagnprobe_wg(h, h2, dataset);
 	string selectorname = "debug_genMatchTagnProbe.root";
 	string ss = "/data_";
 	switch(set){
@@ -167,9 +174,30 @@ void myTestSelector(){
 		case 2: ss = "/WG_"; break;
 		case 3: ss = "/ZG_"; break;
 	}
-	//cout << ss+selectorname << endl;
-	//writeToFile(h, h2, ss+selectorname);
+	cout << ss+selectorname << endl;
+	writeToFile(h, h2, ss+selectorname);
 	// */
+	
+	
+	// ////////////////////////////////////////////////////////////////////////////////////////////
+	// diphoton (Marc and Arka)
+	// with single electron trigger
+	
+	for(int i=8; i<=10; i++){
+		cout << endl;
+		cout << "**************************************************************** " << i;
+		cout << " *****************************************************************"<<endl;
+		f_diphoton_singleelectron(h, h2, filepath+datasets[i]);
+	}
+	string selectorname = "diphoton_check.root";
+	string ss = "/SingleE_";
+	cout << ss+selectorname << endl;
+	writeToFile(h, h2, ss+selectorname);
+	// */
+	
+	
+	
+	
 	
 	
 	double end_time = 1.*( time(NULL));

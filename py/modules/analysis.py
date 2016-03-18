@@ -496,17 +496,11 @@ def eff_simple(tot, pas, xtitle):
 	egraph.SetTitle(name)
 	c = rt.TCanvas("c_"+name,"c_"+name,csize,csize)
 	c.cd()
-	
-	
-	
 	egraph.Draw("ap")
 	#if "eta" not in hp.GetName():
 	#f.Draw("same")
-	
 	c.Update()
-	
 	#raw_input("press any key...")
-	
 	fs.save(c, name)
 	# '''
 

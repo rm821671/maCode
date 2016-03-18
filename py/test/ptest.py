@@ -515,11 +515,45 @@ def mylists():
 	
 	return 0
 
+class mytest(object):
+	def __init__(self):
+		self.a = 0
+		self.calc()
+	
+	def calc(self):
+		self.b = 6
+
+def classtest():
+	
+	m = mytest()
+	print m.a
+	print m.b
+	
+	
+	return 0
 
 def main():
 	print sys.argv
 	
-	mylists()
+	#a = range(10)
+	#b = range(20, 40, 2)
+	
+	#for i, j in a, b:
+	#	print i, j
+	
+	a = range(10, 30, 5)
+	print a
+	
+	count = 0
+	for i in range(len(a)):
+		print i
+		a[i] = a[i]*0.1
+	
+	print a
+	#raw_input()
+	
+	#mylists()
+	#classtest()
 	
 	#funfun()	
 	#files()	

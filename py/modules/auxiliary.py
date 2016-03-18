@@ -66,7 +66,7 @@ def ratio_hishis(h1, h2):
 	h.SetMaximum(mx+rg*.1)
 	h.SetMinimum(mn-rg*.1)
 	h.SetLineColor(rt.kBlack)
-	h.SetMarkerStyle(rt.kOpenCircle)
+	h.SetMarkerStyle(rt.kFullCircle)
 	h.GetYaxis().SetTitle("ratio")
 	return h
 
@@ -76,34 +76,38 @@ def ratio_fhis(h1, f1):
 	#
 	h = h1.Clone()
 	h.Sumw2()
-	
 	binmin = h.GetMinimumBin()
 	binmax = h.GetMaximumBin()
-	
 	for i in range(binmin, binmax+1):
 		val = h.GetBinContent(i)
 		x = h.GetXaxis().GetBinCenter(i)
 		fx = f.Eval(x)
 		h.SetBinContent(i, val/fx)
-	
 	h.SetMarkerStyle(rt.kOpenCircle)
 	h.GetYaxis().SetTitle("data/fit")
 	return h
 
 def ratio_fgraph(g1, f1):
-	# 
-	#
+	# TODO
+	# r->GetConfidenceIntervals(1, 1, 1, x, err, 0.683, false);
 	g = g1.Clone()
 	#g.GetFunction(f1.GetName()).SetBit(rt.kNotDraw)
 	gdim = g1.GetN()
 	x, y = rt.Double(0), rt.Double(0)
+	ex, ey = 0., 0.
+	# SetPointError (Int_t i, Double_t ex, Double_t ey)
+	# GetErrorX 	( 	Int_t  	i	) 	
 	#xset = rt.Double(0)
 	for i in range(0, gdim):
 		#print "point", g1.GetPoint(i, x, y), x, y
 		g1.GetPoint(i, x, y)
 		ytemp = f1.Eval(x)
+		exh = g1.GetErrorXhigh(i)
+		exl = g1.GetErrorXlow(i)
+		eyh = g1.GetErrorYhigh(i)
+		eyl = g1.GetErrorYlow(i)
 		g.SetPoint(i, x, y/ytemp)
-	
+		g.SetPointError(i, exl, exh, eyl, eyh)
 	#print xarr
 	#print yarr
 	g.SetMarkerStyle(rt.kOpenCircle)
@@ -144,7 +148,14 @@ def calc_f_hist(he, hg, c=1):
 
 
 
-
+def randomName():
+	"""
+	Generate a random string. This function is useful to give ROOT objects
+	different names to avoid overwriting.
+	"""
+	from random import randint
+	from sys import maxint
+	return "%x"%(randint(0, maxint))
 
 
 

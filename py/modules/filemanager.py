@@ -26,6 +26,7 @@ class FileSaver():
 		
 		
 		self.path = _fm.GivePlotfolder()
+		print "plot folder: ",self.path
 		#print "self.path: " , self.path
 		self.filename = self.path+filename # 
 		self.treepath = treepath + '/' # e.g. 'HtBins'
@@ -63,11 +64,20 @@ class FileSaver():
 		
 		obj.Write(name, rt.TObject.kOverwrite)
 		f.Close()
+		return 0
+	
+	def savePdf(self, obj, name):
 		
+		if isinstance(obj, rt.TCanvas):
+			obj.Update()
+			name = name + ".pdf"
 		
-
-
-
+		#f = rt.TFile(self.filename, "recreate")
+		#f.cd()
+		#obj.Write(name, rt.TObject.kOverwrite)
+		#f.Close()
+		obj.SaveAs(self.path+name)
+		return 0
 
 '''
 class FileReader():
@@ -79,13 +89,11 @@ class FileReader():
 		self.fm = fm
 		
 	
-
 		
 		
 	
 	
 # '''
-
 
 class FileManager():
 	'''
@@ -390,6 +398,34 @@ class FileManager():
 		
 		return h, h2, h3
 	
+	
+	def loadfile(self, filename):
+		# 
+		h = {}
+		h2 = {}
+		h3 = {}
+		
+		dropbox, filepath = self.SysInfo()
+		data = rt.TFile(dropbox+"root_selectorFiles/"+filename)
+		
+		for key in data.GetListOfKeys():
+			kgn = key.GetName()
+			dt = data.Get(kgn)
+			if isinstance(dt, rt.TH1):
+				h[kgn] = data.Get(kgn)
+				h[kgn].SetDirectory(0)
+			if isinstance(dt, rt.TH2):
+				h2[kgn] = data.Get(kgn)
+				h2[kgn].SetDirectory(0)
+			if isinstance(dt, rt.TH3):
+				h3[kgn] = data.Get(kgn)
+				h3[kgn].SetDirectory(0)
+		
+		data.Close()
+		return h, h2, h3
+
+
+
 
 
 class Parameters():
