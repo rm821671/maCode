@@ -319,10 +319,15 @@ def starter():
 	
 	# closure on wgamma sample
 	filename = "myTestSelector_WG_debug_genMatchTagnProbe_1458286818.root"
-	del h
-	del h2
-	del h3
-	h, h2, h3 = _fm.loadfile(filename)
+	
+	
+	strClosure = ""
+	if "WG" in filename:
+		strClosure = "_wg"
+		del h
+		del h2
+		del h3
+		h, h2, h3 = _fm.loadfile(filename)
 	
 	clos_e = h["clos_gen_e"]
 	clos_g = h["clos_gen_g"]
@@ -336,16 +341,14 @@ def starter():
 	
 	
 	
-	strClosure = ""
-	if "WG" in filename:
-		strClosure = "_wg"
+	
 	
 	
 	
 	
 	# '''
 	
-	''''
+	'''
 	tnp_num = tnp_eg.Clone()
 	tnp_den = tnp_ee.Clone()
 	tnp_den.Add(tnp_eg)
@@ -364,6 +367,8 @@ def starter():
 	
 	pt_binning = range(40, 60+1, 5)+range(60, 100+1, 10)+range(100, 200+1, 20)
 	#pt_binning = range(40, 61, 5)+range(60, 101, 10)
+	
+	
 	
 	tnp_ee.Add(tnp_eg)
 	tpf = h2f.h2Fakerate("pt", tnp_ee, tnp_eg)
@@ -400,8 +405,8 @@ def starter():
 	
 	#del tpf, tpgenf, tpclos, tpcan, tpgencan
 	
-	'''
 	
+	'''
 	ntracks_binning = range(0,200+1,10)
 	tnp_gen_ee_ntracks.Add(tnp_gen_eg_ntracks)
 	tpgenf_ntracks = h2f.h2Fakerate("ntracks_gen", tnp_gen_ee_ntracks, tnp_gen_eg_ntracks)
@@ -435,7 +440,7 @@ def starter():
 	fs.savePdf(tpclos_ntracks.ch["Tag n Probe gen info"+strClosure], "tnpgen_ntracks_closure_perbin"+strClosure)
 	fs.savePdf(tpclos_ntracks.ch["Tag n Probe"+strClosure], "tnp_ntracks_closure_perbin"+strClosure)
 	
-	del tpf_ntracks, tpgenf_ntracks, tpclos_ntracks
+	#del tpf_ntracks, tpgenf_ntracks, tpclos_ntracks
 	#'''
 	
 	
@@ -560,7 +565,7 @@ def main():
 	
 	print "gen_tp_debugging.main()"
 	
-	rt.gROOT.Reset()
+	#rt.gROOT.Reset()
 	starter()
 	#diphoton()
 	

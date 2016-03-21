@@ -454,6 +454,7 @@ void f_diphoton_fakerate(map<string,TH1F> &h, map<string,TH2F> &h2, string datas
 			}
 			
 			//tag 1
+			ph = 0;
 			if(	photons[ph].isMedium &&
 				photons[ph].r9 < 1.0 &&
 				photons[ph].sigmaIetaIeta < 0.0102 &&
@@ -670,7 +671,7 @@ void f_diphoton_fakerate(map<string,TH1F> &h, map<string,TH2F> &h2, string datas
 }
 
 void f_diphoton_singleelectron(map<string,TH1F> &h, map<string,TH2F> &h2, string dataset){
-	cout << "f_diphoton_fakerate()" << endl;
+	cout << "f_diphoton_singleelectron()" << endl;
 	cout << dataset << endl;
 	
 	// INITIALIZATION

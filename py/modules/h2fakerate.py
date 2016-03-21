@@ -58,12 +58,12 @@ class h2Fakerate(object):
 		for yb in range(self.ybins):
 			#print yb
 			htemp1 = tot.ProjectionX("tot_"+str(yb), yb, yb, option)#.Clone(aux.randomName())
-			rt.SetOwnership( htemp1, False )
+			#rt.SetOwnership( htemp1, False )
 			#htemp.SetDirectory(0)
 			self.tot_proj.append(htemp1)
 			#del htemp
 			htemp2 = pas.ProjectionX("pas_"+str(yb), yb, yb, option)#.Clone(aux.randomName())
-			rt.SetOwnership( htemp2, False )
+			#rt.SetOwnership( htemp2, False )
 			#htemp.SetDirectory(0)
 			self.pas_proj.append(htemp2)
 			#del htemp
@@ -153,8 +153,7 @@ class h2FakerateCanvas(object):
 		else:
 			self.ratio = aux.ratio_fgraph(h2f.egraph_nofit, h2f.f)
 			self.ratio.GetXaxis().SetTitle(self.h2f.ytitle)
-			self.ratio.SetMinimum(0.5)
-			self.ratio.SetMaximum(1.5)
+			
 		
 	def createCanvas(self, yrng=""):
 		cwidth = 800
@@ -177,9 +176,12 @@ class h2FakerateCanvas(object):
 		
 		self.ratio.GetXaxis().SetTitleSize(0.08)
 		self.ratio.GetXaxis().SetLabelSize(0.08)
-		self.ratio.GetYaxis().SetTitleSize(0.08)
+		self.ratio.GetYaxis().SetTitleSize(0.12)
 		self.ratio.GetYaxis().SetLabelSize(0.08)
 		self.ratio.GetYaxis().SetTitleOffset(0.7)
+		
+		self.ratio.SetMinimum(0.5)
+		self.ratio.SetMaximum(1.5)
 		
 		pad1 = rt.TPad("pad1","pad1",0,rat,1,1)
 		
@@ -218,8 +220,9 @@ class h2FakerateCanvas(object):
 		pad2.cd()
 		
 		
-		oneline = rt.TF1("oneline", "1", 	self.egraph.GetXaxis().GetXmin(),
-											self.egraph.GetXaxis().GetXmax())
+		oneline = rt.TF1("oneline"+aux.randomName(), "1", 
+								self.egraph.GetXaxis().GetXmin(),
+								self.egraph.GetXaxis().GetXmax())
 		oneline.SetLineWidth(1)
 		oneline.SetLineColor(rt.kBlack)
 		
@@ -281,7 +284,7 @@ class closure(object):
 		#self.cf = 1 # canvas for fit prediction
 		#self.ch = 1 # canvas for histo prediction
 		
-		self.leg = 1 # legend
+		#self.leg = 1 # legend
 	
 	def addFakerate(self, f, name=""):
 		# fakerate should be of type h2Fakerate
@@ -363,24 +366,21 @@ class closure(object):
 				num = opt[0]
 		
 		
-		if self.leg is None:
-			#print "isnone: ", self.leg
-			
-			offset = -0.1
-			self.leg = rt.TLegend(.6+offset,.65+offset,.96+offset,.87+offset)
-			self.leg.SetFillColor(rt.kWhite)
-			self.leg.SetFillStyle(0)
-			self.leg.AddEntry(self.target, "N_{e#rightarrow#gamma}", "f")
-			self.leg.AddEntry(self.predictionh[num], self.names[num], "ep")
-			
+		#if self.leg is None:
+		#print "isnone: ", self.leg
 		
-		c = rt.TCanvas(name, name, cwidth, cheight)
-		c.cd()
+	
+		self.c = rt.TCanvas(name, name, cwidth, cheight)
+		self.c.cd()
+		
+		
+		
+		
 		
 		self.target.GetXaxis().SetTitleSize(0.05)
 		self.target.GetXaxis().SetLabelSize(0.0)
-		self.target.GetYaxis().SetTitleSize(0.05)
-		self.target.GetYaxis().SetLabelSize(0.03)
+		self.target.GetYaxis().SetTitleSize(0.06)
+		self.target.GetYaxis().SetLabelSize(0.05)
 		self.target.GetYaxis().SetTitleOffset(1.3)
 		self.target.GetYaxis().SetTitle("Events / bin")
 		self.target.SetFillColor(rt.kGray+2)
@@ -392,19 +392,32 @@ class closure(object):
 		
 		
 		self.ratio = aux.ratio_hishis(self.target, self.predictionh[num])
-		self.ratio.GetXaxis().SetTitleSize(0.08)
-		self.ratio.GetXaxis().SetLabelSize(0.08)
-		self.ratio.GetYaxis().SetTitleSize(0.08)
-		self.ratio.GetYaxis().SetLabelSize(0.08)
-		self.ratio.GetYaxis().SetTitleOffset(0.7)
+		self.ratio.GetXaxis().SetTitleSize(0.1)
+		self.ratio.GetXaxis().SetLabelSize(0.1)
+		self.ratio.GetYaxis().SetTitleSize(0.15)
+		self.ratio.GetYaxis().SetLabelSize(0.1)
+		self.ratio.GetYaxis().SetTitleOffset(0.5)
+		self.ratio.SetMinimum(0.5)
+		self.ratio.SetMaximum(1.5)
 		
-		pad1 = rt.TPad("pad1","pad1",0,rat,1,1)
+		self.pad1 = rt.TPad("pad1","pad1",0,rat,1,1)
+		self.pad1.SetLogy()
+		self.pad1.SetBottomMargin(0)
+		self.pad1.SetLeftMargin(0.16)
 		
-		pad1.SetBottomMargin(0)
-		pad1.SetLeftMargin(0.16)
-		pad1.Draw()
-		pad1.cd()
-		pad1.Update()
+		self.pad1.Draw()
+		self.pad1.cd()
+		#self.pad1.SetLogy()
+		self.pad1.Update()
+		
+		'''
+		offset = 0.
+		self.leg = rt.TLegend(.6+offset,.65+offset,.96+offset,.87+offset)
+		self.leg.SetFillColor(rt.kWhite)
+		self.leg.SetFillStyle(0)
+		self.leg.AddEntry(self.target, "N_{e#rightarrow#gamma}", "f")
+		self.leg.AddEntry(self.predictionh[num], self.names[num], "ep")
+		#'''
 		
 		#self.egraph.GetYaxis().SetTitle("Fakerate")
 		#self.egraph.GetYaxis().SetTitleOffset(1.3)
@@ -420,38 +433,44 @@ class closure(object):
 		#eff.Draw("ap")
 		#print self.leg
 		
+		
 		self.target.Draw("E2")
 		self.predictionh[num].Draw("ep same")
+		self.pad1.SetLogy()
 		
+		#self.leg = self.pad1.BuildLegend()
+		#rt.gPad.ls()
+		
+		#self.leg.Draw()
 		
 		#if self.leg is not None:
-		#	self.leg.Draw()
+		#self.leg.Draw()
 		
-		c.cd()
+		self.c.cd()
 		
-		pad2 = rt.TPad("pad2","pad2",0,0,1,rat)
-		pad2.SetTopMargin(0)
-		pad2.SetBottomMargin(0.25)
-		pad2.SetLeftMargin(0.16)
-		pad2.Draw()
-		pad2.cd()
+		self.pad2 = rt.TPad("pad2","pad2",0,0,1,rat)
+		self.pad2.SetTopMargin(0)
+		self.pad2.SetBottomMargin(0.25)
+		self.pad2.SetLeftMargin(0.16)
+		self.pad2.Draw()
+		self.pad2.cd()
 		
-		oneline = rt.TF1("oneline", "1", 	self.target.GetXaxis().GetXmin(),
+		self.oneline = rt.TF1("oneline", "1", 	self.target.GetXaxis().GetXmin(),
 											self.target.GetXaxis().GetXmax())
-		oneline.SetLineWidth(1)
-		oneline.SetLineColor(rt.kBlack)
+		self.oneline.SetLineWidth(1)
+		self.oneline.SetLineColor(rt.kBlack)
 		
 		self.ratio.Draw("ep")
-		oneline.Draw("same")
-		pad2.Update()
+		self.oneline.Draw("same")
+		self.pad2.Update()
 		
-		c.Update()
+		self.c.Update()
 		
 		#drawCMS(c)
 		#c.Update()
 		
 		#raw_input()
-		self.ch[self.names[num]] = c.Clone(self.names[num])
+		self.ch[self.names[num]] = self.c.Clone(self.names[num])
 		#self.ch[self.names[num]].SetDirectory(0)
 		self.ch[self.names[num]].Update()
 		
