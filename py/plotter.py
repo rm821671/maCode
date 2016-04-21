@@ -14,31 +14,31 @@ from analyses import *
 
 
 def main():
-	
-	print sys.argv
-	print "start analysis modules..."
-	
-	
-	
-	
-	
-	#FakerateData.main()
-	#Transferfactor.main()
-	
-	#FakerateMedium.main()
-	
-	dpg.main()
-	
-	
-	
-	#tree
-	
-	print "... finished analysis modules"
-	print ":-D"
-	return 0
+    
+    print sys.argv
+    print "start analysis modules..."
+    
+    
+    
+    
+    
+    #FakerateData.main()
+    #Transferfactor.main()
+    
+    #FakerateMedium.main()
+    
+    dpg.main()
+    
+    
+    
+    #tree
+    
+    print "... finished analysis modules"
+    print ":-D"
+    return 0
 
 
 if __name__ == '__main__':
-	print "... start"
-	main()
-	print "__main__ ... done!"
+    print "... start"
+    main()
+    print "__main__ ... done!"

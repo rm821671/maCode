@@ -34,7 +34,6 @@ class FileSaver():
 		self.dropbox = _fm.dropbox
 		
 		# self.simulation = simulation
-		
 		# self.folder = 
 		
 	
@@ -424,10 +423,6 @@ class FileManager():
 		data.Close()
 		return h, h2, h3
 
-
-
-
-
 class Parameters():
 	'''
 	a little class to handle parameters for methods
@@ -474,14 +469,13 @@ class Parameters():
 			self.variables[v] = {}
 		self.variables[v]["effrng"] = rng
 
-
 class ParVariables(dict):
 	'''
 	handle the variables 
 	'''
 	def add(self, var):
 		self[var] = 0
-	
+
 
 
 

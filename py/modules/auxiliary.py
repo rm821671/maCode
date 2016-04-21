@@ -83,7 +83,7 @@ def ratio_fhis(h1, f1):
 		x = h.GetXaxis().GetBinCenter(i)
 		fx = f.Eval(x)
 		h.SetBinContent(i, val/fx)
-	h.SetMarkerStyle(rt.kOpenCircle)
+	h.SetMarkerStyle(rt.kFullCircle)
 	h.GetYaxis().SetTitle("data/fit")
 	return h
 
@@ -110,7 +110,7 @@ def ratio_fgraph(g1, f1):
 		g.SetPointError(i, exl, exh, eyl, eyh)
 	#print xarr
 	#print yarr
-	g.SetMarkerStyle(rt.kOpenCircle)
+	g.SetMarkerStyle(rt.kFullCircle)
 	g.GetYaxis().SetTitle("data/fit")
 	return g
 

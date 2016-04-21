@@ -22,6 +22,13 @@ namespace tree
       bool isPrompt;
    };
 
+   struct TriggerObject: public Particle
+   {
+      // all filter labels this trigger object fired
+      // only TrackIsoFilter triggers!
+      std::vector<std::string> filterLabels;
+   };
+
    struct IntermediateGenParticle: public GenParticle
    {
       std::vector<GenParticle> daughters;

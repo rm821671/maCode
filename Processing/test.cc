@@ -601,6 +601,96 @@ void fitslicesy() {
 }
 
 
+void myrandom(){
+    int one = 0, two = 0, three = 0;
+    int temp;
+    TRandom3 *rg = new TRandom3(time(NULL));
+    
+    double start_time = time(NULL); // measure running time
+    
+    for(int i=0; i<100000000; i++){
+        temp = rg->Integer(1);
+        switch(temp){
+            case 0:
+                one++; break;
+            case 1:
+                two++; break;
+            case 2:
+                three++; break;
+            }
+    }
+    cout << "one: " << one << "\t two: " << two << "\t three: " << three << endl;
+    cout << "time(NULL)=" << time(NULL) << endl;
+    double end_time = 1.*( time(NULL));
+    cout << "Runtime ~" << (end_time - start_time)/1 << " sec." << endl;
+    
+}
+
+void myvec(){
+    
+    vector<int> v;
+    
+    v.push_back(0);
+    v.push_back(1);
+    v.push_back(2);
+    v.push_back(3);
+    
+    for(auto& i: v){
+        cout << i << endl;
+    }
+    
+    v.erase(v.begin()+3);
+    v.erase(v.begin()+2);
+    v.erase(v.begin()+1);
+    
+    v.erase(v.begin()+0);
+    
+    cout << "after erase: "<<endl;
+    for(auto& i: v){
+        cout << i << endl;
+    }
+    
+    
+}
+
+void myfors(){
+    int k=0;
+    
+    cout << "++i" << endl;
+    for(int i=0; i<10; ++i){
+        cout << "k = " << k << "\t i = " << i << endl;
+        k++;
+    }
+    
+    k = 0;
+    cout << "i++: " << endl;
+    for(int i=0; i<10; ++i){
+        cout << "k = " << k << "\t i = " << i << endl;
+        k++;
+    }
+    
+    
+}
+
+void pointerToFunction(int *k){
+    
+    //
+     
+    *k = 123;
+    return;
+}
+
+void callPointerToFunction(){
+    
+    int f = 5;
+    
+    cout << "before: f="<< f << endl;
+    pointerToFunction(&f);
+    cout << "after:  f="<< f << endl;
+    
+    
+}
+
 void test(){
 	
 	//ratioplot();
@@ -613,7 +703,13 @@ void test(){
 	
 	cout << sqrt(2) << endl;
 	
-	
+    //myrandom();
+    //myvec();
+	//myfors();
+    
+    callPointerToFunction();
+    
+    
 	//stringtest();
 	//sysinfo();
 /*
