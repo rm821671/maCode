@@ -27,6 +27,12 @@ namespace tree
       // all filter labels this trigger object fired
       // only TrackIsoFilter triggers!
       std::vector<std::string> filterLabels;
+      
+      // trigger collection
+      std::string collection;
+      
+      // filter path names
+      std::vector<std::string> pathNamesAll; 
    };
 
    struct IntermediateGenParticle: public GenParticle

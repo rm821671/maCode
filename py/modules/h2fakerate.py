@@ -264,7 +264,7 @@ class h2FakerateCanvas(object):
 
 def drawCMS(c):
     # TODO: doesnt work atm
-    
+    c.cd()
     # Needs a canvas
     # TLatex(x, y, text)
     info = rt.TLatex(9.,9.,"13 TeV")

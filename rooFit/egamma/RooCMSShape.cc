@@ -36,7 +36,7 @@ ClassImp(RooCMSShape)
    beta("beta","beta",this,_beta),
    gamma("gamma","gamma",this,_gamma),
    peak("peak","peak",this,_peak)
- { } 
+ { }
 
 
  RooCMSShape::RooCMSShape(const RooCMSShape& other, const char* name):
@@ -46,7 +46,7 @@ ClassImp(RooCMSShape)
    beta("beta",this,other.beta),
    gamma("gamma",this,other.gamma),
    peak("peak",this,other.peak)
- { } 
+ { }
 
 
 
@@ -62,4 +62,4 @@ ClassImp(RooCMSShape)
   else if( u>70 ) u = 0;
   else u = exp(-u);   //exponential decay
   return erf*u;
- } 
+ }
