@@ -1,0 +1,12 @@
+{
+    string s = "********************************* rooFit START *********************************";
+    gROOT->ProcessLine("cout << s << endl;");
+    gSystem->Load("pluginTreeWriterTreeWriterAuto.so");
+    gSystem->Load("libRooFit");
+    //gROOT->LoadMacro("tdrstyle.C");
+    gROOT->ProcessLine(".L TTemplateFit.cc+");
+    gROOT->ProcessLine(".L rooFitHeader.cc+");
+    gROOT->ProcessLine(".L rooFitter.cc+");
+    gROOT->ProcessLine("rooFitter()");
+    
+} 
