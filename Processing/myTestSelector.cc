@@ -64,24 +64,32 @@ void myTestSelector(){
     // filepath and dropbox path changes, depending on system
     SystemPath(filepath, dropbox);
     
-    string datasets[] = {   
+    string datasets[] = {
+                        
+                        
                         
                         //"DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root" // 0
                         //"DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v02.root",// 0
                         //"DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v03.root",// 0
-                        "DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v04.root", // 0
+                        //"DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v04.root", // 0
+                        //"DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v05.root", // 0
+                        "DYJetsToLL_M-50.root", // 0
                         
                         //"TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_v01.root", //1
                         //"TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_v02.root",// 1
-                        "TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_v03.root", //1
+                        //"TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_v03.root", //1
+                        "TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8_v04.root", // 1
                         
                         //"WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root", // 2
                         //"WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v02.root", // 2
-                        "WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v03.root", //2
+                        //"WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v03.root", //2
+                        "WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v04.root", //2
                         
                         // "ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root", // 3
                         //"ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v02.root", // 3
-                        "ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v03.root", // 3
+                        //"ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v03.root", // 3
+                        "ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v04.root", //3
+                        
                         
                         "DoubleEG_Run2015D-05Oct2015-v1_v02.root",  // 4
                         "DoubleEG_Run2015D-PromptReco-v4_v02.root", // 5
@@ -92,9 +100,12 @@ void myTestSelector(){
                         //"SingleElectron_Run2015C_25ns-05Oct2015-v1.root", // 8
                         //"SingleElectron_Run2015D-05Oct2015-v1.root", // 9
                         //"SingleElectron_Run2015D-PromptReco-v4.root", // 10
-                        "SingleElectron_Run2015C_25ns-05Oct2015-v1_v02.root", // 8
-                        "SingleElectron_Run2015D-05Oct2015-v1_v02.root", // 9
-                        "SingleElectron_Run2015D-PromptReco-v4_v02.root", // 10
+                        //"SingleElectron_Run2015C_25ns-05Oct2015-v1_v02.root", // 8
+                        "SingleElectron_Run2015C_25ns-16Dec2015-v1_v01.root", // 8
+                        //"SingleElectron_Run2015D-05Oct2015-v1_v02.root", // 9
+                        "SingleElectron_Run2015D-16Dec2015-v1_v01.root", // 9
+                        //"SingleElectron_Run2015D-PromptReco-v4_v02.root", // 10
+                        "SingleElectron_Run2015D-PromptReco-v4_v03.root", // 10 <<-- ist in RunD 16Dec enthalten
                         
                         //"MuonEG_Run2015C_25ns-05Oct2015-v1_v01.root", // 11
                         //"MuonEG_Run2015D-05Oct2015-v2_v01.root", // 12
@@ -128,13 +139,34 @@ void myTestSelector(){
                                };
                         */
                         "SingleMuon_Run2015C_25ns-16Dec2015-v1_v01.root", //17
-                        "SingleMuon_Run2015D-16Dec2015-v1_v01.root", //18
-                        "SingleMuon_Run2015D-PromptReco-v4_v02.root", //19
+                        "SingleMuon_Run2015D-16Dec2015-v1_v01.root",      //18
+                        "SingleMuon_Run2015D-PromptReco-v4_v02.root",     //19
                         
                         "MuonEG_Run2015C_25ns-16Dec2015-v1_v01.root", //20
-                        "MuonEG_Run2015D-16Dec2015-v1_v01.root", //21
-                        "MuonEG_Run2015D-PromptReco-v4_v03.root", //22
+                        "MuonEG_Run2015D-16Dec2015-v1_v01.root",      //21
+                        "MuonEG_Run2015D-PromptReco-v4_v03.root",     //22 <<-- ist in Run2015D 16Dec enthalten
                         
+                        
+                        
+                        
+                        // WJetsToLNuG for closure plots
+                        //~ "WJetsToLNu_HT-100To200.root",   //23
+                        //~ "WJetsToLNu_HT-200To400.root",   //24
+                        //~ "WJetsToLNu_HT-400To600.root",   //25
+                        //~ "WJetsToLNu_HT-600To800.root",   //26
+                        //~ "WJetsToLNu_HT-800To1200.root",  //27
+                        //~ "WJetsToLNu_HT-1200To2500.root", //28
+                        //~ "WJetsToLNu_HT-2500ToInf.root",  //29
+                        "WJetsToLNu_HT-100To200_v02.root",   //23
+                        "WJetsToLNu_HT-200To400_v02.root",   //24
+                        "WJetsToLNu_HT-400To600_v02.root",   //25
+                        "WJetsToLNu_HT-600To800_v02.root",   //26
+                        "WJetsToLNu_HT-800To1200_v02.root",  //27
+                        "WJetsToLNu_HT-1200To2500_v02.root", //28
+                        "WJetsToLNu_HT-2500ToInf_v02.root",  //29
+                        
+                        // ttbar without gamma
+                        "TTJets.root",                      // 30
                     };
     
     
@@ -218,7 +250,7 @@ void myTestSelector(){
     
     
     // ////////////////////////////////////////////////////////////////////////////////////////////
-    // tag and probe NEUE METHODE
+    // tag and probe
     // 
     // - mit trigger matching
     // - mit unbinned trees
@@ -232,7 +264,7 @@ void myTestSelector(){
     cout << "outputfile will be: " << outputName << endl;
     //getchar();
     init(h, h2, tb, outputName); // tb contain the tree branches
-    for(set=8; set <=10; set++){
+    for(set=8; set <=9; set++){
         dataset = filepath + datasets[set];
         r = f_my_singleelectron_triggermatching(h, h2, tb, dataset, nCounts, events, outputName);
     }
@@ -244,26 +276,34 @@ void myTestSelector(){
     
     
     // ////////////////////////////////////////////////////////////////////////////////////////////
-    // tag and probe NEUE METHODE
+    // tag and probe
     // 
     // - mit trigger matching
+    // - mit unbinned trees
     // - mit diesdas
     // - NUR FUER SIMULATION
-    /*
-    init(h, h2);
-    int set=8;
-    int r;
+/*
+    int set;
+    int r(2);
     string dataset;
-    for(set=8; set <=10; set++){
+    Int_t indices[] = {0, 1, 2, 3, 23, 24, 25, 26, 27, 28, 29};
+    // mcEvents_DYJetsToLL+ZGTo2LNu+TTGJets+WGToLNuG+WJetsToLNu_plusUnbinned_
+    //string outputName = createUniqueFilename("/mcEvents_DYJetsToLL+ZGTo2LNu+TTGJets+WGToLNuG+WJetsToLNu_plusUnbinned_.root");
+    string outputName = createUniqueFilename("/mcEvents_TTJets_plusUnbinned_.root");
+    cout << "outputfile will be: " << outputName << endl;
+    init(h, h2, tb, outputName); // tb contain the tree branches
+    for(set=30; set <=30; set++){
+    //for(auto &set: indices){
         dataset = filepath + datasets[set];
-        //r = f_my_singleelectron_MC_triggermatching(h, h2, dataset, nCounts, events);
-        r = f_my_singleelectron_triggermatching(h, h2, dataset, nCounts, events);
+        cout << "dataset = " << dataset << endl;
+        r = f_my_singleelectron_MC_triggermatching(h, h2, tb, dataset, nCounts, events, outputName);
     }
     cout << "return: " << r << endl;
     terminate(nCounts); //output
     //eventwriter(events);
-    writeToFile(h, h2, "/NEW_data_tnp_forPlots.root");
+    writeToFile(h, h2, outputName);
     // */
+    
     
     
     
@@ -311,7 +351,7 @@ void myTestSelector(){
     // ////////////////////////////////////////////////////////////////////////////////////////////
     // signal template construction, including unbinned trees
     // -- from DY
-/*
+
     int set;
     int r;
     string dataset;
@@ -335,7 +375,7 @@ void myTestSelector(){
     // background template construction, including unbinned trees
     // -- from muon dataset
     // - MuonEG or SingleMuon
-
+/*
     int set;
     int r;
     string dataset;
@@ -343,7 +383,7 @@ void myTestSelector(){
     cout << "outputfile will be: " << outputName << endl;
     //getchar();
     init(h, h2, tb, outputName); // tb contain the tree branches
-    for(set=20; set <= 22; set++){
+    for(set=20; set <= 21; set++){
         dataset = filepath + datasets[set];
         r = f_create_backgroundTemplate(h, h2, tb, dataset, nCounts, events, outputName);
     }
@@ -354,6 +394,37 @@ void myTestSelector(){
     // */
     
     
+    
+    // ////////////////////////////////////////////////////////////////////////////////////////////
+    // background template construction, including unbinned trees
+    // -- from Monte Carlo
+/*
+    int set;
+    int r(3);
+    //~ //             0  1  2  3  4   5   6    7   8   9  10  11
+    Int_t indices[] = {0, 1, 2, 3, 23, 24, 25, 26, 27, 28, 29, 30};
+    string dataset;
+    // DYJetsToLL+ZGTo2LNu+TTGJets+WGToLNuG+WJetsToLNu+TTJets
+    //string outputName = createUniqueFilename("/backgroundlTemplates_MC_PlusUnbinned_.root");
+    string outputName = createUniqueFilename("/backgroundlTemplates_MC_DYJetsToLL_PlusUnbinned_.root");
+    cout << "outputfile will be: " << outputName << endl;
+    init(h, h2, tb, outputName); // tb contain the tree branches
+    //for(set=0; set <= 0; set++){
+    for(auto &set: indices){
+        cout << datasets[set] << endl;
+        dataset = filepath + datasets[set];
+        cout << "call the function..." << endl;
+        r = f_create_backgroundTemplate_MC(h, h2, tb, dataset, nCounts, events, outputName);
+        
+        
+        
+    }
+    
+    cout << "return: " << r << endl;
+    terminate(nCounts); //output
+    //eventwriter(events);
+    writeToFile(h, h2, outputName); // add histograms to file(outputName)
+// */
     
     
     
@@ -377,6 +448,30 @@ void myTestSelector(){
     
     
     
+    
+    // ////////////////////////////////////////////////////////////////////////////////////////////
+    // create distributions for closure
+    // 
+/*
+    int set;
+    int r(2);
+    Int_t indices[] = {0, 1, 2, 3, 23, 24, 25, 26, 27, 28, 29};
+    string dataset;
+    //string outputName = createUniqueFilename("/closureWJetsToLNu_.root");
+    string outputName = createUniqueFilename("/closure_montecarloStack_.root");
+    cout << "outputfile will be: " << outputName << endl;
+    //getchar();
+    init(h, h2, tb, outputName); // tb contain the tree branches
+    //for(set=0; set <= 0; set++){
+    for(auto &set: indices){
+        dataset = filepath + datasets[set];
+        r = f_closure(h, h2, tb, dataset, nCounts, events, outputName);
+    }
+    cout << "return: " << r << endl;
+    terminate(nCounts); //output
+    //eventwriter(events);
+    writeToFile(h, h2, outputName); // add histograms to file(outputName)
+    // */
     
     
     

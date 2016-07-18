@@ -24,6 +24,7 @@
 #include "RooChebychev.h"
 #include "RooLandau.h"
 #include "RooNumConvPdf.h"
+#include "RooFFTConvPdf.h"
 #include "RooEffProd.h"
 #include "RooAddPdf.h"
 #include "RooKeysPdf.h"
@@ -37,10 +38,13 @@
 // classes for fit and plotting and all that
 #include "TTemplateFit.h"
 
+// auxiliary class
+#include "TAuxiliary.h"
 
 #include "TROOT.h"
 #include "TChain.h"
 #include "TFile.h"
+#include "TLatex.h"
 
 //#include "TSelector.h"
 //#include "TTreeReader.h"
@@ -56,7 +60,7 @@
 #include "TRandom.h"
 #include "TRandom3.h"
 
-
+#include "TPad.h"
 #include "TCanvas.h"
 #include "TAxis.h"
 #include "RooPlot.h"
@@ -85,7 +89,6 @@
 using namespace std;
 using namespace RooFit;
 
-
 /**********************************************************************************************
  * setup functions 
  * 
@@ -95,43 +98,31 @@ template <typename T> string NumberToString ( T Number );
 void SystemPath(string & filepath, string & dropbox);
 
 /**********************************************************************************************
- * models
+ * parametrized models
  * 
  ***/
 
-RooAbsPdf* modelEG(RooRealVar& m);
-RooAbsPdf* modelEE(RooRealVar& m);
+RooAbsPdf *getModelPdf(RooRealVar& m, Int_t N, string component, string fraction);
 
 /**********************************************************************************************
  * fits and stuff
  * 
  ***/
 
-void test();
 
-void FitterEG(string dataset);
-void FitterEE(string dataset);
+void workflowHandler(map<string, string> set);
 
-void FitterEGdata(string dataset);
-void FitterEEdata(string dataset);
+void test(map<string, string> &set);
 
-void kernelEst(string dataset);
-
-
-void templateKernel(string signal, string background, string dataset);
-
-void templateKernelTest(string signal, string background, string dataset);
-void templateKernelClass(string signal, string background, string dataset);
-
-void templateKernelUnbinned(string signal, string background, string dataset);
-void templateKernelUnbinned_PtNtrk(string signal, string background, string dataset);
+void templateKernelUnbinned(map<string, string> set);
 
 void readFitResults(string dropbox);
-void influenceBinningFit(string dropbox);
-void influenceSignalBackground(string dropbox);
+
+
+void closurePlot(map<string, string> set);
+
 
 void readValues();
-
 
 
 

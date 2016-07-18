@@ -56,6 +56,8 @@ def ratio_hishis(h1, h2):
     # returns h1/h2
     #
     h = h1.Clone()
+    h.Sumw2()
+    h2.Sumw2()
     h.Divide(h2)
     yax = h.GetYaxis()
     if yax:

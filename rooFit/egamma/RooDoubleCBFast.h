@@ -18,7 +18,7 @@ public:
               RooAbsReal& _alpha2,
               RooAbsReal& _n2
            );
-
+  
   RooDoubleCBFast(const RooDoubleCBFast& other, const char* name=0) ;
   virtual TObject* clone(const char* newname) const { return new RooDoubleCBFast(*this,newname); }
   inline virtual ~RooDoubleCBFast() { }
