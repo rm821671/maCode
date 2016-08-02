@@ -35,11 +35,11 @@
 #include "RooCMSShape.h"
 #include "RooDoubleCBFast.h"
 
+// auxiliary class with helpfull method and a lot of data members
+#include "TAuxiliary.h"
+
 // classes for fit and plotting and all that
 #include "TTemplateFit.h"
-
-// auxiliary class
-#include "TAuxiliary.h"
 
 #include "TROOT.h"
 #include "TChain.h"
@@ -56,6 +56,7 @@
 #include "TEfficiency.h"
 #include "TGraphErrors.h"
 #include "TF1.h"
+#include "THStack.h"
 
 #include "TRandom.h"
 #include "TRandom3.h"

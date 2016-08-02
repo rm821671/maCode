@@ -355,6 +355,14 @@ void TTemplateFit::addData(RooDataSet* data, TTree* sig, TTree* bkg)
     return;
 }
 
+//~ void TTemplateFit::addBackgroundContributions(THStack* th)
+//~ {
+    //~ 
+    //~ 
+    //~ 
+    //~ return ;
+//~ }
+
 void TTemplateFit::fitToPdf(RooAbsPdf *pdf, TFile* f, string fSubfolder, string sFit, string sPlotStyle)
 {
     // Use this to fit any given pdf to the data.

@@ -33,7 +33,7 @@ public:
 
 protected:
 
-  RooRealProxy m ;
+  RooRealProxy  m ;
   RooRealProxy  m0 ;
   RooRealProxy  sigma ;
   RooRealProxy  alpha ;

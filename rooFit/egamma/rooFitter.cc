@@ -72,24 +72,32 @@ void rooFitter(){
             "myTestSelector_backgroundlTemplates_MC_stack_PlusUnbinned__1468495636.root", //12
             
             // background templates for each monte carlo sample
-            "myTestSelector_backgroundlTemplates_MC_WJetsToLNu_PlusUnbinned__1468250515.root", //13
-            "myTestSelector_backgroundlTemplates_MC_DYJetsToLL_PlusUnbinned__1468251383.root", //14
-            "myTestSelector_backgroundlTemplates_MC_TTGJets_PlusUnbinned__1468254628.root", // 15
-            "myTestSelector_backgroundlTemplates_MC_WGToLNuG_PlusUnbinned__1468255289.root", //16
-            "myTestSelector_backgroundlTemplates_MC_ZGTo2LG_PlusUnbinned__1468255989.root", //17
+            "myTestSelector_backgroundlTemplates_MC_WJetsToLNu_PlusUnbinned__1468250515.root", //13 keine Trees
+            "myTestSelector_backgroundlTemplates_MC_DYJetsToLL_PlusUnbinned__1468251383.root", //14 Trees
+            "myTestSelector_backgroundlTemplates_MC_TTGJets_PlusUnbinned__1468254628.root", // 15   keine Trees
+            "myTestSelector_backgroundlTemplates_MC_WGToLNuG_PlusUnbinned__1468255289.root", //16   keine Trees
+            "myTestSelector_backgroundlTemplates_MC_ZGTo2LG_PlusUnbinned__1468255989.root", //17    keine Trees
             
             // closure plot file
             "myTestSelector_closure_montecarloStack__1468301810.root", //18
             
             // multiple montecarlos, unbinned trees with weight branches
-            "myTestSelector_mcEvents_ZGTo2LG_plusUnbinned__1468403724.root", // 19
-            "myTestSelector_mcEvents_TTGJets_plusUnbinned__1468405068.root", // 20
-            "myTestSelector_mcEvents_WGToLNuG_plusUnbinned__1468405147.root", // 21
-            "myTestSelector_mcEvents_DYJetsToLL_plusUnbinned__1468403356.root", // 22
-            "myTestSelector_mcEvents_WJetsToLNu_plusUnbinned__1468405457.root", // 23
-            "myTestSelector_mcEvents_TTJets_plusUnbinned__1468489085.root", // 24
+            "myTestSelector_mcEvents_ZGTo2LG_plusUnbinned__1468403724.root", // 19      keine trees
+            "myTestSelector_mcEvents_TTGJets_plusUnbinned__1468405068.root", // 20      ""
+            "myTestSelector_mcEvents_WGToLNuG_plusUnbinned__1468405147.root", // 21     ""
+            "myTestSelector_mcEvents_DYJetsToLL_plusUnbinned__1468403356.root", // 22   trees!
+            "myTestSelector_mcEvents_WJetsToLNu_plusUnbinned__1468405457.root", // 23   keine trees
+            "myTestSelector_mcEvents_TTJets_plusUnbinned__1468489085.root", // 24       trees!
+            
+            
+            // monte carlo background samples in LO, ohne gewichte.
+            "myTestSelector_backgroundlTemplates_MC_WJetsToLNu_PlusUnbinned__1469460716.root", // 25
+            
+            
+            
             
         };
+    
     
     
     dataset = dropbox + ss + filenames[2];
@@ -150,17 +158,21 @@ void rooFitter(){
     set["templateBackgroundMC_ZGTo2LG"]    = filenames[17];
     set["templateBackgroundMC_TTJets"]     = "";               // << prozessiert
     // mc events seperated
-    set["eventsMC_WJetsToLNu"] = filenames[23]; // WJetsToLNu   23
-    set["eventsMC_DYJetsToLL"] = filenames[22]; // DYJetsToLL   22
-    set["eventsMC_TTGJets"]    = filenames[20]; // TTGJets      20
-    set["eventsMC_WGToLNuG"]   = filenames[21]; // WGToLNuG     21
-    set["eventsMC_ZGTo2LG"]    = filenames[19]; // ZGTo2LG      19
-    set["eventsMC_TTJets"]     = filenames[24]; // TTJets       24
+    set["eventsMC_WJetsToLNu"] = filenames[23]; // WJetsToLNu  23
+    set["eventsMC_DYJetsToLL"] = filenames[22]; // DYJetsToLL  22
+    set["eventsMC_TTGJets"]    = filenames[20]; // TTGJets     20
+    set["eventsMC_WGToLNuG"]   = filenames[21]; // WGToLNuG    21
+    set["eventsMC_ZGTo2LG"]    = filenames[19]; // ZGTo2LG     19
+    set["eventsMC_TTJets"]     = filenames[24]; // TTJets      24
+    
+    
     
     string mcBkgTemplates[] = {filenames[13], filenames[14], filenames[15], filenames[16], filenames[17]};
     
     
     workflowHandler(set);
+    
+    
                         //~ string signal, 
                         //~ string background, 
                         //~ string mcbackground, 

@@ -5991,7 +5991,7 @@ To add new output to an existing Tree, do:
                 //~ }
                 //~ trNo++;
             //~ }
-            //~ getchar();
+            
             
             // fill trigger objects
             trNo = 0;
@@ -6010,6 +6010,8 @@ To add new output to an existing Tree, do:
                 //~ }
                 trNo++;
             }
+            
+            
             
             
             hname="trigger3";
@@ -6036,11 +6038,14 @@ To add new output to an existing Tree, do:
             // with Pt and Eta criteria
             selPhotons.clear();
             for(auto& p: photons){
-                if( p.p.Pt() > 40 &&
+                if( p.p.Pt() > 40. &&
                     fabs(p.p.Eta()) < 1.4442){
                         selPhotons.push_back(&p);
                 }
             }
+            
+            
+            
             
             // there have to be at least two photon objects fulfilling the criteria,
             // otherwise there would be no chance to find a tag and a probe object.
@@ -6148,6 +6153,8 @@ To add new output to an existing Tree, do:
                 if(vp_tag_Photon.size() > 0){ // only do the calculations if at least one
                                         // tag has been found
                     
+                    
+                    
                     nCounts[12]++;
                     
                     tc = rg->Integer(vp_tag_Photon.size());// random integer in the vector length range;
@@ -6179,6 +6186,7 @@ To add new output to an existing Tree, do:
                                             fabs(selTag_Photon.p.Eta()-selProbe_Photon.p.Eta())
                                             );
                         
+                        
                         // now: check if selected tag and probe corresponds to a generated electron
                         // originating from a Z.
                         for(auto& interGen: intermediateGenParticles){
@@ -6196,6 +6204,10 @@ To add new output to an existing Tree, do:
                                             relPt < 1.2){
                                                 
                                                 genTag = true;
+                                                
+                                                //~ cout << "genTag!" << endl;
+                                                //~ getchar();
+                                                
                                         } else {
                                                 genTag = false;
                                         }
@@ -6210,6 +6222,8 @@ To add new output to an existing Tree, do:
                                             relPt < 1.2){
                                                 
                                                 genProbe = true;
+                                                //~ cout << "genProbe!" << endl;
+                                                //~ getchar();
                                         } else {
                                                 genProbe = false;
                                         }

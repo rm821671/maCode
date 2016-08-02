@@ -67,7 +67,6 @@ RooAbsPdf* getModelPdf(RooRealVar& m, Int_t N, string component, string fraction
     //  background = cms shape
     
     
-    
     Double_t Ntot = N;      // total events
     Double_t f;       // signal fraction
     
@@ -179,7 +178,13 @@ void workflowHandler(map<string, string> set){
     
     cout << "rooFitHeader.workflowHandler()" << endl;
     
+    
+    // Initialize variables:
+    
+    // some strings
     string filepath, dropbox, ss;
+    
+    
     
     // filepath and dropbox path changes, depending on system
     SystemPath(filepath, dropbox);
@@ -198,6 +203,8 @@ void workflowHandler(map<string, string> set){
     //~ for(auto& mapIt: set){
         //~ cout << mapIt.second << endl;
     //~ }
+    
+    
     
     //~  // content of set:
     //~ 
@@ -224,14 +231,17 @@ void workflowHandler(map<string, string> set){
     //~ set["eventsMC_TTJets"]
     
     ///////////////////////////////////////////////////////////////////////////////////////////
-    cout << "start!" << endl;
+    cout << "start..." << endl;
     //test();
     
-    //~ templateKernelUnbinned(set); 
+    templateKernelUnbinned(set);
     
-    readFitResults(dropbox);
+    //~ readFitResults(dropbox);
     //~ closurePlot(set);
     
+    
+    
+    cout << "...finished!" << endl;
     return ;
 }
 
@@ -291,11 +301,12 @@ void test(map<string, string> &set){
 void templateKernelUnbinned(map<string, string> set){
 //void templateKernelUnbinned(string signal, string background, string mcbackground, string dataset, string mcset){
     
+    // map<string, string> set <<< contains all the filenames (including full path)
+    
     cout << "rooFitHeader.templateKernelUnbinned()" << endl;
     
     //rt.gROOT.SetBatch(rt.kTRUE) # dont show the canvases
     gROOT->SetBatch(kTRUE); // dont show canvases
-    
     
     // cross section for DYJetsToLL in pb at NLO:
     float cs = 6025.2;
@@ -306,26 +317,18 @@ void templateKernelUnbinned(map<string, string> set){
     // show scale factor
     cout << "Scale factor: " << lum*cs/Nmc << endl;
     
-    //~ // *** read out data trees ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    string signal       = set["templateSignal"];
-    string background   = set["templateBackground"];
-    string dataset      = set["eventsData"];
-    string mcset        = set["eventsMC_stack"];
-    string mcbackground = set["templateBackgroundMC_stack"];
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Initialize variables:
     
-    //~ cout << "mcset = " << mcset << endl;
-    //~ getchar();
+    TAuxiliary *aux = new TAuxiliary();
+    
     
     // templates and data files
-    TFile *fSig   = new TFile(signal.c_str(), "READ");
-    TFile *fBkg   = new TFile(background.c_str(), "READ");
-    TFile *fDat   = new TFile(dataset.c_str(), "READ");
-    TFile *f_Mc   = new TFile(mcset.c_str(), "READ");
-    TFile *fBkgMc = new TFile(mcbackground.c_str(), "READ");
+    map<string, TFile*> f;
+    string fname;
     
     // read out trees
     map<string, TTree*> t;
-    
     string treeNames[] =    {   "data_num",
                                 "data_den",
                                 "mc_num",
@@ -334,23 +337,135 @@ void templateKernelUnbinned(map<string, string> set){
                                 "template_bkg_den",
                                 "template_bkg_num_MC",
                                 "template_bkg_den_MC",
-                                
                                 "template_sig",
                             };
     Int_t NtreeNames = arraysize(treeNames);
     
-    t["data_num"] =            (TTree*) fDat->Get("data_num");
-    t["data_den"] =            (TTree*) fDat->Get("data_den");
-    t["mc_num"]   =            (TTree*) f_Mc->Get("mc_num");
-    t["mc_den"]   =            (TTree*) f_Mc->Get("mc_den");
-    t["template_bkg_num"] =    (TTree*) fBkg->Get("template_bkg_num");
-    t["template_bkg_den"] =    (TTree*) fBkg->Get("template_bkg_den");
-    t["template_sig"] =        (TTree*) fSig->Get("template_sig");
+    //              0       1
+    string ts[] = {"den", "num"};
+    Int_t Nts = arraysize(ts);
     
-    t["template_bkg_num_MC"]      = (TTree*) fBkgMc->Get("template_bkg_num_MC");
-    t["template_bkg_den_MC"]      = (TTree*) fBkgMc->Get("template_bkg_den_MC");
-    t["template_bkg_num_MC_true"] = (TTree*) fBkgMc->Get("template_bkg_num_MC_true");
-    t["template_bkg_den_MC_true"] = (TTree*) fBkgMc->Get("template_bkg_den_MC_true");
+    // template fit class objects
+    map<string, TTemplateFit*>  tf;
+    // map for all roo data sets
+    map<string, RooDataSet*>    rds;
+    
+    // map for roo real vars
+    map<string, RooRealVar*>    rv;
+    
+    // roodatasets for monte carlo
+    map<string, RooDataSet*>    rdsMc;
+    map<string, RooDataSet*>    rdsMcW;
+    string mcname;
+    
+    //~ // create datasets in each variable
+    map<string, RooDataSet*> rdsM;      // map with invariant mass dependency data
+    map<string, RooDataSet*> rdsPt;     // pt
+    map<string, RooDataSet*> rdsNtrk;   // ntrk
+    map<string, RooDataSet*> rdsPtNtrk; // pt and ntrk
+    map<string, RooDataSet*> rdsNvtx;   // nvtx
+    map<string, RooDataSet*> rdsEta;    // Eta
+    map<string, RooDataSet*> rdsW;      // weightes
+    
+    // binned 1d montecarlo histograms (to apply weights)
+    map<string, TH1F*> thMc;
+    
+    
+    
+    
+    //~ // define binnings for 1d variable plots
+    // Pt 
+    //                          0     1     2       3       4     5     6     7        8     9     10
+    Double_t bins_pt[] =    {  40. , 45. ,  50.,   60.,   70.,   90.,   110., 140.,   250.};
+    string bins_pt_pdf[] =  {"hist","hist","hist","hist","hist","hist","hist","hist","hist"};
+    Int_t Npt = arraysize(bins_pt);
+    // Nvtx
+    //                          0     1     2       3       4     5     6     7     8      9       10     11    12      13    14    15    16    17    18    19
+    Double_t bins_nvtx[] =  {   1.,   2.,  3.,     4.,      5.,    6.,  7.,   8.,   9.,    10.,    11.,   12.,  13.,    14.,  15.,  16.,  17.,  18.,  19.,  20.  };
+    string bins_nvtx_pdf[] ={"hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist", "hist"};
+    Int_t Nvtx = arraysize(bins_nvtx);
+    // Ntrk
+    //                          0     1     2       3       4     5     6     7        8     9     10
+    Double_t bins_ntrk[] =  {  0.,   20.,   40.,   60.,   80.,   100.,  120.,  140.,  160.};
+    string bins_ntrk_pdf[] ={"hist","hist","hist","hist","hist","hist","hist","hist","hist"};
+    Int_t Ntrk = arraysize(bins_ntrk);
+    // eta
+    //                          0     1     2       3       4     5     6     7        8     9     10
+    Double_t bins_eta[] =   {  0.,    0.2,  0.4,   0.6,    0.8,   1.,   1.2,  1.4};
+    string bins_eta_pdf[] = {"hist","hist","hist","hist","hist","hist","hist","hist"};
+    Int_t Neta = arraysize(bins_eta);
+    
+    string sBin, sName;
+    string sLow, sUp;
+    
+    Int_t fitPtBin = 7;
+    Int_t fitFraction = 1; // 0: den, 1: num
+    
+    
+    // subfolder for each fit
+    string fSubfolder;
+    string unique;
+    
+    fSubfolder = "";
+    unique     = "";
+    
+    
+    // pointer on roo distributions
+    RooAbsPdf* parametrizedModel;
+    RooArgSet* parametrizedPars;
+    
+    
+    
+    getchar();
+    
+    goto jumperEnd;
+    
+    
+    
+    //~ // *** read out data trees ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~ string signal       = set["templateSignal"];
+    //~ string background   = set["templateBackground"];
+    //~ string dataset      = set["eventsData"];
+    //~ string mcset        = set["eventsMC_stack"];
+    //~ string mcbackground = set["templateBackgroundMC_stack"];
+    
+    //~ cout << "mcset = " << mcset << endl;
+    //~ getchar();
+    
+    
+    fname = "templateSignal";
+    f[fname] = new TFile(set[fname].c_str(), "READ");
+    fname = "templateBackground";
+    f[fname] = new TFile(set[fname].c_str(), "READ");
+    fname = "eventsData";
+    f[fname] = new TFile(set[fname].c_str(), "READ");
+    fname = "eventsMC_stack";
+    f[fname] = new TFile(set[fname].c_str(), "READ");
+    fname = "templateBackgroundMC_stack";
+    f[fname] = new TFile(set[fname].c_str(), "READ");
+    
+    
+    //~ 
+    //~ TFile *fSig   = new TFile(signal.c_str(), "READ");
+    //~ TFile *fBkg   = new TFile(background.c_str(), "READ");
+    //~ TFile *fDat   = new TFile(dataset.c_str(), "READ");
+    //~ TFile *f_Mc   = new TFile(mcset.c_str(), "READ");
+    //~ TFile *fBkgMc = new TFile(mcbackground.c_str(), "READ");
+    
+    
+    
+    t["data_num"] =            (TTree*) f["eventsData"]->Get("data_num");
+    t["data_den"] =            (TTree*) f["eventsData"]->Get("data_den");
+    t["mc_num"]   =            (TTree*) f["eventsMC_stack"]->Get("mc_num");
+    t["mc_den"]   =            (TTree*) f["eventsMC_stack"]->Get("mc_den");
+    t["template_bkg_num"] =    (TTree*) f["templateBackground"]->Get("template_bkg_num");
+    t["template_bkg_den"] =    (TTree*) f["templateBackground"]->Get("template_bkg_den");
+    t["template_sig"] =        (TTree*) f["templateSignal"]->Get("template_sig");
+    
+    t["template_bkg_num_MC"]      = (TTree*) f["templateBackgroundMC_stack"]->Get("template_bkg_num_MC");
+    t["template_bkg_den_MC"]      = (TTree*) f["templateBackgroundMC_stack"]->Get("template_bkg_den_MC");
+    t["template_bkg_num_MC_true"] = (TTree*) f["templateBackgroundMC_stack"]->Get("template_bkg_num_MC_true");
+    t["template_bkg_den_MC_true"] = (TTree*) f["templateBackgroundMC_stack"]->Get("template_bkg_den_MC_true");
     
     cout << "data_num.Entries()         = " << t["data_num"]->GetEntries() << endl;
     cout << "data_den.Entries()         = " << t["data_den"]->GetEntries() << endl;
@@ -358,27 +473,19 @@ void templateKernelUnbinned(map<string, string> set){
     cout << "template_bkg_den.Entries() = " << t["template_bkg_den"]->GetEntries() << endl;
     cout << "template_sig.Entries()     = " << t["template_sig"]->GetEntries() << endl;
     
-    //              0       1
-    string ts[] = {"den", "num"};
-    Int_t Nts = arraysize(ts);
-    
-    
     // *** class objects for the fittings ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // template fit class objects
-    map<string, TTemplateFit*> tf;
-    // map for all roo data sets
-    map<string, RooDataSet*> rds;
     
     //TAuxiliary aux;
     
     // invariant mass
-    RooRealVar *m = new RooRealVar("m", "m (GeV)", 60., 120.);
+    //RooRealVar *m = new RooRealVar("m", "m (GeV)", 60., 120.);
+    rv["m"]       = new RooRealVar("m", "m (GeV)", 60., 120.);
     // kinematic variables
-    RooRealVar *pt   = new RooRealVar("pt",   "p_{T}^{probe} (GeV)", 0., 1000.);
-    RooRealVar *nvtx = new RooRealVar("nvtx", "N_{vertex}", 0., 35.);
-    RooRealVar *ntrk = new RooRealVar("ntrk", "N_{track}", 0., 240.);
-    RooRealVar *eta  = new RooRealVar("eta",  "|#eta^{probe}|", 0., 1.5);
-    RooRealVar *w    = new RooRealVar("w",    "weights", -200., 200.);
+    rv["pt"]      = new RooRealVar("pt",   "p_{T}^{probe} (GeV)", 0., 1000.);
+    rv["nvtx"]    = new RooRealVar("nvtx", "N_{vertex}", 0., 35.);
+    rv["ntrk"]    = new RooRealVar("ntrk", "N_{track}", 0., 240.);
+    rv["eta"]     = new RooRealVar("eta",  "|#eta^{probe}|", 0., 1.5);
+    rv["w"]       = new RooRealVar("w",    "weights", -200., 200.);
     
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // for montecarlo:
@@ -391,18 +498,17 @@ void templateKernelUnbinned(map<string, string> set){
     //                          *data->get(),
     //                          0,
     //                          w->GetName()) ;
-    map<string, RooDataSet*> rdsMc;
-    map<string, RooDataSet*> rdsMcW;
-    string mcname;
+    
+    
     mcname = "mc_num";
     rdsMc[mcname] = new RooDataSet( mcname.c_str(), 
                                     mcname.c_str(), 
-                                    RooArgList(*m, *w), 
+                                    RooArgList(*rv["m"], *rv["w"]), 
                                     Import(*t[mcname])); 
     mcname = "mc_den";
     rdsMc[mcname] = new RooDataSet( mcname.c_str(),
                                     mcname.c_str(), 
-                                    RooArgList(*m, *w), 
+                                    RooArgList(*rv["m"], *rv["w"]), 
                                     Import(*t[mcname]));
     // now use the weight-branch (w) to make roofit interpret 
     // them as a weight for the other branches
@@ -412,14 +518,14 @@ void templateKernelUnbinned(map<string, string> set){
                                         rdsMc[mcname], 
                                         *rdsMc[mcname]->get(), 
                                         0,
-                                        w->GetName());
+                                        rv["w"]->GetName());
     mcname = "mc_den";
     rdsMcW[mcname] = new RooDataSet(    rdsMc[mcname]->GetName(), 
                                         rdsMc[mcname]->GetTitle(), 
                                         rdsMc[mcname], 
                                         *rdsMc[mcname]->get(), 
                                         0, 
-                                        w->GetName());
+                                        rv["w"]->GetName());
     
     //~ cout << "weightes stuff... " << endl;
     //~ getchar();
@@ -437,24 +543,18 @@ void templateKernelUnbinned(map<string, string> set){
                                 //~ w->GetName());
     //~ cout << "weightes stuff... done" << endl;
     //~ getchar();
+    //~ 
+    //~ 
+    //~ 
+    //~ 
     
-    
-    map<string, TH1F*> thMc;
     mcname = "mc_num";
-    thMc[mcname] = (TH1F*) rdsMcW[mcname]->createHistogram(m->GetName(), 60);
+    thMc[mcname] = (TH1F*) rdsMcW[mcname]->createHistogram(rv["m"]->GetName(), 60);
     mcname = "mc_den";
-    thMc[mcname] = (TH1F*) rdsMcW[mcname]->createHistogram(m->GetName(), 60);
-    
+    thMc[mcname] = (TH1F*) rdsMcW[mcname]->createHistogram(rv["m"]->GetName(), 60);
     
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //~ // create datasets in each variable
-    map<string, RooDataSet*> rdsM;      // map with invariant mass dependency data
-    map<string, RooDataSet*> rdsPt;     // pt
-    map<string, RooDataSet*> rdsNtrk;   // ntrk
-    map<string, RooDataSet*> rdsPtNtrk; // pt and ntrk
-    map<string, RooDataSet*> rdsNvtx;   // nvtx
-    map<string, RooDataSet*> rdsEta;    // Eta
-    map<string, RooDataSet*> rdsW;      // weightes
     
     for(int i=0; i<NtreeNames; i++){
         cout << "treeNames["<<i<<"] = " << treeNames[i] << endl;
@@ -480,58 +580,58 @@ void templateKernelUnbinned(map<string, string> set){
             cout << "treeNames = " << treeNames[i] << " is Simulation! --> weights applied" << endl;
             rdsW[treeNames[i]]        = new RooDataSet( treeNames[i].c_str(), 
                                                         treeNames[i].c_str(), 
-                                                        RooArgList(*m, *pt, *w), 
+                                                        RooArgList(*rv["m"], *rv["pt"], *rv["w"]), 
                                                         Import(*t[treeNames[i]]));
             rdsPt[treeNames[i]]       = new RooDataSet( rdsW[treeNames[i]]->GetName(),
                                                         rdsW[treeNames[i]]->GetTitle(),
                                                         rdsW[treeNames[i]], 
                                                         *rdsW[treeNames[i]]->get(), 
                                                         0,
-                                                        w->GetName());
+                                                        rv["w"]->GetName());
             
             rdsW[treeNames[i]]      = new RooDataSet(   treeNames[i].c_str(), 
                                                         treeNames[i].c_str(), 
-                                                        RooArgList(*m, *ntrk, *w), 
+                                                        RooArgList(*rv["m"], *rv["ntrk"], *rv["w"]), 
                                                         Import(*t[treeNames[i]]));
             rdsNtrk[treeNames[i]]       = new RooDataSet( rdsW[treeNames[i]]->GetName(),
                                                         rdsW[treeNames[i]]->GetTitle(),
                                                         rdsW[treeNames[i]], 
                                                         *rdsW[treeNames[i]]->get(), 
                                                         0,
-                                                        w->GetName());
+                                                        rv["w"]->GetName());
             
             rdsW[treeNames[i]]    = new RooDataSet(treeNames[i].c_str(), 
                                                         treeNames[i].c_str(), 
-                                                        RooArgList(*m, *pt, *ntrk, *w), 
+                                                        RooArgList(*rv["m"], *rv["pt"], *rv["ntrk"], *rv["w"]), 
                                                         Import(*t[treeNames[i]]));
             rdsPtNtrk[treeNames[i]]       = new RooDataSet( rdsW[treeNames[i]]->GetName(),
                                                         rdsW[treeNames[i]]->GetTitle(),
                                                         rdsW[treeNames[i]], 
                                                         *rdsW[treeNames[i]]->get(), 
                                                         0,
-                                                        w->GetName());
+                                                        rv["w"]->GetName());
             
             rdsW[treeNames[i]]      = new RooDataSet(treeNames[i].c_str(), 
                                                         treeNames[i].c_str(), 
-                                                        RooArgList(*m, *nvtx, *w), 
+                                                        RooArgList(*rv["m"], *rv["nvtx"], *rv["w"]), 
                                                         Import(*t[treeNames[i]]));
             rdsNvtx[treeNames[i]]       = new RooDataSet( rdsW[treeNames[i]]->GetName(),
                                                         rdsW[treeNames[i]]->GetTitle(),
                                                         rdsW[treeNames[i]], 
                                                         *rdsW[treeNames[i]]->get(), 
                                                         0,
-                                                        w->GetName());
+                                                        rv["w"]->GetName());
             
             rdsW[treeNames[i]]       = new RooDataSet(treeNames[i].c_str(), 
                                                         treeNames[i].c_str(), 
-                                                        RooArgList(*m, *eta, *w), 
+                                                        RooArgList(*rv["m"], *rv["eta"], *rv["w"]), 
                                                         Import(*t[treeNames[i]]));
             rdsEta[treeNames[i]]       = new RooDataSet( rdsW[treeNames[i]]->GetName(),
                                                         rdsW[treeNames[i]]->GetTitle(),
                                                         rdsW[treeNames[i]], 
                                                         *rdsW[treeNames[i]]->get(), 
                                                         0,
-                                                        w->GetName());
+                                                        rv["w"]->GetName());
             rdsEta[treeNames[i]]->Print();
             
             
@@ -539,23 +639,23 @@ void templateKernelUnbinned(map<string, string> set){
             //~ cout << "treeNames = " << treeNames[i] << " is Data!" << endl;
             rdsPt[treeNames[i]]        = new RooDataSet(treeNames[i].c_str(), 
                                                         treeNames[i].c_str(), 
-                                                        RooArgList(*m, *pt), 
+                                                        RooArgList(*rv["m"], *rv["pt"]), 
                                                         Import(*t[treeNames[i]]));
             rdsNtrk[treeNames[i]]      = new RooDataSet(treeNames[i].c_str(), 
                                                         treeNames[i].c_str(), 
-                                                        RooArgList(*m, *ntrk), 
+                                                        RooArgList(*rv["m"], *rv["ntrk"]), 
                                                         Import(*t[treeNames[i]]));
             rdsPtNtrk[treeNames[i]]    = new RooDataSet(treeNames[i].c_str(), 
                                                         treeNames[i].c_str(), 
-                                                        RooArgList(*m, *pt, *ntrk), 
+                                                        RooArgList(*rv["m"], *rv["pt"], *rv["ntrk"]), 
                                                         Import(*t[treeNames[i]]));
             rdsNvtx[treeNames[i]]      = new RooDataSet(treeNames[i].c_str(), 
                                                         treeNames[i].c_str(), 
-                                                        RooArgList(*m, *nvtx), 
+                                                        RooArgList(*rv["m"], *rv["nvtx"]), 
                                                         Import(*t[treeNames[i]]));
             rdsEta[treeNames[i]]       = new RooDataSet(treeNames[i].c_str(), 
                                                         treeNames[i].c_str(), 
-                                                        RooArgList(*m, *eta), 
+                                                        RooArgList(*rv["m"], *rv["eta"]), 
                                                         Import(*t[treeNames[i]]));
         }
     }
@@ -563,136 +663,21 @@ void templateKernelUnbinned(map<string, string> set){
     //~ // ** create file for the results ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //~ // and subfolder 
     // root file to store fit results
-    TFile *fResults = new TFile("results_fits.root", "update");
-    // subfolder for each fit
-    string fSubfolder;
-    string unique;
-    
-    unique = "";
-    
-    RooAbsPdf* parametrizedModel;
-    RooArgSet* parametrizedPars;
+    f["results_fit"] = new TFile("results_fits.root", "update");
+    //TFile *fResults = new TFile("results_fits.root", "update");
     
     
-     // global fits
+    // global fits
     
-    // global fits on data ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    for(int i=0; i<Nts; i++){
-        // create template fit objects
-        cout << "initialize tf["<< ts[i] << "]:" << endl;
-        tf[ts[i]] = new TTemplateFit(ts[i], ts[i], m);
-        tf[ts[i]]->addData(t["data_"+ts[i]], t["template_sig"], t["template_bkg_"+ts[i]]);
-        
-        tf[ts[i]]->setRhoBkg(1.);         // set rho to 1 (smoothness prefered over detail)
-        tf[ts[i]]->setUnbinnedFit(kTRUE); // unbinned fit
-        
-        fSubfolder = unique+"global/withSigConvFFT";
-        
-        //~ // fit with convolution
-        tf[ts[i]]->buildPdf("hist", "fit");
-        tf[ts[i]]->drawRaw(fResults, fSubfolder);
-        tf[ts[i]]->drawFrame(fResults, fSubfolder);
-        tf[ts[i]]->save(fResults, fSubfolder);
-        
-        //~ // parametrized model fit
-        parametrizedModel = getModelPdf(*m, tf[ts[i]]->getNtot(), "modelDCB", ts[i]);
-        tf[ts[i]]->setUnbinnedFit(kFALSE); // binned fit
-        tf[ts[i]]->fitToPdf(parametrizedModel, fResults, fSubfolder, "fit", "bkg");
-        
-        tf[ts[i]]->setUnbinnedFit(kTRUE); // unbinned fit
-        
-        // no convolution
-        fSubfolder = unique+"global/noSigConvFFT";
-        tf[ts[i]]->setSignalConvolution(kFALSE); // set convolution off
-        tf[ts[i]]->buildPdf("hist", "fit");     // build template based pdfs (histogram based for signal) and fit them
-        tf[ts[i]]->drawRaw(fResults, fSubfolder);
-        tf[ts[i]]->drawFrame(fResults, fSubfolder);
-        tf[ts[i]]->save(fResults, fSubfolder);
-        
-        //~ // scale the background template
-        fSubfolder = unique+"global/backgroundVariation/scalingPlots";
-        tf[ts[i]]->scaleBackgroundTemplate(t["template_bkg_"+ts[i]+"_MC"], t["template_bkg_"+ts[i]+"_MC_true"], fResults, fSubfolder);
-        // now fit again
-        fSubfolder = unique+"global/backgroundVariation/templateFit";
-        tf[ts[i]]->setSignalConvolution(kTRUE); // set convolution off
-        tf[ts[i]]->setUnbinnedFit(kFALSE); // binned fit
-        tf[ts[i]]->buildPdf("hist", "fit");
-        tf[ts[i]]->drawRaw(fResults, fSubfolder);
-        tf[ts[i]]->drawFrame(fResults, fSubfolder);
-        tf[ts[i]]->save(fResults, fSubfolder);
-        
-    }
-    // global fits on mc   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    for(int i=0; i<Nts; i++){
-        // create template fit objects
-        cout << "initialize tf["<< ts[i] << "]:" << endl;
-        tf[ts[i]] = new TTemplateFit(ts[i], ts[i], m);
-        tf[ts[i]]->setType("mc"); // initialize as montecarlo fitter
-        
-        //tf[ts[i]]->addData(rdsMcW["mc_"+ts[i]], t["template_sig"], t["template_bkg_"+ts[i]]);
-        tf[ts[i]]->addData(thMc["mc_"+ts[i]], t["template_sig"], t["template_bkg_"+ts[i]+"_MC"]);
-        
-        tf[ts[i]]->setRhoBkg(1.);          // set rho to 1 (smoothness prefered over detail)
-        tf[ts[i]]->setUnbinnedFit(kFALSE); // binned fit
-        
-        // fit with convolution
-        fSubfolder = unique+"mc_global/withSigConvFFT";
-        tf[ts[i]]->buildPdf("hist", "fit");
-        tf[ts[i]]->drawRaw(fResults, fSubfolder);
-        tf[ts[i]]->drawFrame(fResults, fSubfolder);
-        tf[ts[i]]->save(fResults, fSubfolder);
-        
-        // fit with true background template for systematic uncertainty
-        tf[ts[i]]->addData(thMc["mc_"+ts[i]], t["template_sig"], t["template_bkg_"+ts[i]+"_MC_true"]);
-        tf[ts[i]]->setRhoBkg(1.);          // set rho to 1 (smoothness prefered over detail)
-        tf[ts[i]]->setUnbinnedFit(kFALSE); // binned fit
-        fSubfolder = unique+"mc_global/withTrueBkg";
-        tf[ts[i]]->buildPdf("hist", "fit");
-        tf[ts[i]]->drawRaw(fResults, fSubfolder);
-        tf[ts[i]]->drawFrame(fResults, fSubfolder);
-        tf[ts[i]]->save(fResults, fSubfolder);
-        
-    }
+    //~ fitGlobalData();
+    //~ fitGlobalMC();
+    
     
     // */
     
     
     
-    //~ // *** define binnings for 1d variable plots ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-    // Pt 
-    //                          0     1     2       3       4     5     6     7        8     9     10
-    Double_t bins_pt[] =    {  40. , 45. ,  50.,   60.,   70.,   90.,   110., 140.,   250.};
-    string bins_pt_pdf[] =  {"hist","hist","hist","hist","hist","hist","hist","hist","hist"};
-    Int_t Npt = arraysize(bins_pt);
-    // Nvtx
-    //                          0     1     2       3       4     5     6     7     8      9       10     11      12    13    14    15    16    17    18    19
-    Double_t bins_nvtx[] =  {   1.,   2.,  3.,     4.,      5.,    6.,  7.,   8.,   9.,    10.,    11.,   12.,  13.,    14.,  15.,  16.,  17.,  18.,  19.,  20.  };
-    string bins_nvtx_pdf[] ={"hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist","hist", "hist"};
-    Int_t Nvtx = arraysize(bins_nvtx);
-    // Ntrk
-    //                          0     1     2       3       4     5     6     7        8     9     10
-    Double_t bins_ntrk[] =  {  0.,   20.,   40.,   60.,   80.,   100.,  120.,  140.,  160.};
-    string bins_ntrk_pdf[] ={"hist","hist","hist","hist","hist","hist","hist","hist","hist"};
-    Int_t Ntrk = arraysize(bins_ntrk);
-    // eta
-    //                          0     1     2       3       4     5     6     7        8     9     10
-    Double_t bins_eta[] =   {  0.,    0.2,  0.4,   0.6,    0.8,   1.,   1.2,  1.4};
-    string bins_eta_pdf[] = {"hist","hist","hist","hist","hist","hist","hist","hist"};
-    Int_t Neta = arraysize(bins_eta);
-    
-    
-    
-    string sBin, sName;
-    string sLow, sUp;
-    
-    cout << "Npt  = " << Npt  << endl;
-    cout << "Ntrk = " << Ntrk << endl;
-    cout << "Nvtx = " << Nvtx << endl;
-    cout << "Neta = " << Neta << endl;
-    
-    Int_t fitPtBin = 7;
-    Int_t fitFraction = 1; // 0: den, 1: num
     
     //~ // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //~ // tests...
@@ -717,11 +702,6 @@ void templateKernelUnbinned(map<string, string> set){
     //~ myTestCanvas->SaveAs("testPlot.png");
     
     
-    
-    //getchar();
-    
-    
-    
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Data
     unique = "data_";
     // loop nominator and denominator:  
@@ -736,24 +716,24 @@ void templateKernelUnbinned(map<string, string> set){
             sName = ts[i]+"_pt_"+sBin;
             //cout << sName << endl;
             
-            rds["data_"+ts[i]] =         (RooDataSet*)  rdsPt["data_"+ts[i]]->reduce(*m,           ("pt>="+sLow+" && pt<"+sUp).c_str());
-            rds["template_sig"] =        (RooDataSet*)  rdsPt["template_sig"]->reduce(*m,          ("pt>="+sLow+" && pt<"+sUp).c_str());
-            rds["template_bkg_"+ts[i]] = (RooDataSet*)  rdsPt["template_bkg_"+ts[i]]->reduce(*m,   ("pt>="+sLow+" && pt<"+sUp).c_str());
+            rds["data_"+ts[i]] =         (RooDataSet*)  rdsPt["data_"+ts[i]]->reduce(*rv["m"],           ("pt>="+sLow+" && pt<"+sUp).c_str());
+            rds["template_sig"] =        (RooDataSet*)  rdsPt["template_sig"]->reduce(*rv["m"],          ("pt>="+sLow+" && pt<"+sUp).c_str());
+            rds["template_bkg_"+ts[i]] = (RooDataSet*)  rdsPt["template_bkg_"+ts[i]]->reduce(*rv["m"],   ("pt>="+sLow+" && pt<"+sUp).c_str());
             
             cout << "Entries in "+sName << " = " << rds["data_"+ts[i]]->numEntries() << endl;
             
             fSubfolder = unique+"pt/binning1";
             //fSubfolder = "pt/pullTests/withAverage";
             // build pdf s and draw frames
-            tf[sName] = new TTemplateFit(sName, sName, m);
+            tf[sName] = new TTemplateFit(sName, sName, rv["m"]);
             tf[sName]->addData(rds["data_"+ts[i]], rds["template_sig"], rds["template_bkg_"+ts[i]]);
             // now perform an unbinned likelihood fit
             tf[sName]->setUnbinnedFit(kTRUE);
             tf[sName]->setRhoBkg(1.);
             tf[sName]->buildPdf(bins_pt_pdf[bin], "fit");
-            tf[sName]->drawRaw(fResults, fSubfolder);
-            tf[sName]->drawFrame(fResults, fSubfolder);
-            tf[sName]->save(fResults, fSubfolder);
+            tf[sName]->drawRaw(f["results_fit"], fSubfolder);
+            tf[sName]->drawFrame(f["results_fit"], fSubfolder);
+            tf[sName]->save(f["results_fit"], fSubfolder);
             
             //del tf[sName];
         }
@@ -768,23 +748,23 @@ void templateKernelUnbinned(map<string, string> set){
             sName = ts[i]+"_nvtx_"+sBin;
             //cout << sName << endl;
             
-            rds["data_"+ts[i]] =         (RooDataSet*)  rdsNvtx["data_"+ts[i]]->reduce(*m,         ("nvtx>="+sLow+" && nvtx<"+sUp).c_str());
-            rds["template_sig"] =        (RooDataSet*)  rdsNvtx["template_sig"]->reduce(*m,        ("nvtx>="+sLow+" && nvtx<"+sUp).c_str());
-            rds["template_bkg_"+ts[i]] = (RooDataSet*)  rdsNvtx["template_bkg_"+ts[i]]->reduce(*m, ("nvtx>="+sLow+" && nvtx<"+sUp).c_str());
+            rds["data_"+ts[i]] =         (RooDataSet*)  rdsNvtx["data_"+ts[i]]->reduce(*rv["m"],         ("nvtx>="+sLow+" && nvtx<"+sUp).c_str());
+            rds["template_sig"] =        (RooDataSet*)  rdsNvtx["template_sig"]->reduce(*rv["m"],        ("nvtx>="+sLow+" && nvtx<"+sUp).c_str());
+            rds["template_bkg_"+ts[i]] = (RooDataSet*)  rdsNvtx["template_bkg_"+ts[i]]->reduce(*rv["m"], ("nvtx>="+sLow+" && nvtx<"+sUp).c_str());
             
             cout << "Entries in "+sName << " = " << rds["data_"+ts[i]]->numEntries() << endl;
             
             fSubfolder = unique+"nvtx/binning1";
             // build pdf s and draw frames
-            tf[sName] = new TTemplateFit(sName, sName, m);
+            tf[sName] = new TTemplateFit(sName, sName, rv["m"]);
             tf[sName]->addData(rds["data_"+ts[i]], rds["template_sig"], rds["template_bkg_"+ts[i]]);
             // now perform an unbinned likelihood fit
             tf[sName]->setUnbinnedFit(kTRUE);
             tf[sName]->setRhoBkg(1.);
             tf[sName]->buildPdf(bins_nvtx_pdf[bin], "fit");
-            tf[sName]->drawRaw(fResults, fSubfolder);
-            tf[sName]->drawFrame(fResults, fSubfolder);
-            tf[sName]->save(fResults, fSubfolder);
+            tf[sName]->drawRaw(f["results_fit"], fSubfolder);
+            tf[sName]->drawFrame(f["results_fit"], fSubfolder);
+            tf[sName]->save(f["results_fit"], fSubfolder);
             
             
         }
@@ -797,23 +777,23 @@ void templateKernelUnbinned(map<string, string> set){
             sName = ts[i]+"_ntrk_"+sBin;
             //cout << sName << endl;
             
-            rds["data_"+ts[i]] =         (RooDataSet*)  rdsNtrk["data_"+ts[i]]->reduce(*m,         ("ntrk>="+sLow+" && ntrk<"+sUp).c_str());
-            rds["template_sig"] =        (RooDataSet*)  rdsNtrk["template_sig"]->reduce(*m,        ("ntrk>="+sLow+" && ntrk<"+sUp).c_str());
-            rds["template_bkg_"+ts[i]] = (RooDataSet*)  rdsNtrk["template_bkg_"+ts[i]]->reduce(*m, ("ntrk>="+sLow+" && ntrk<"+sUp).c_str());
+            rds["data_"+ts[i]] =         (RooDataSet*)  rdsNtrk["data_"+ts[i]]->reduce(*rv["m"],         ("ntrk>="+sLow+" && ntrk<"+sUp).c_str());
+            rds["template_sig"] =        (RooDataSet*)  rdsNtrk["template_sig"]->reduce(*rv["m"],        ("ntrk>="+sLow+" && ntrk<"+sUp).c_str());
+            rds["template_bkg_"+ts[i]] = (RooDataSet*)  rdsNtrk["template_bkg_"+ts[i]]->reduce(*rv["m"], ("ntrk>="+sLow+" && ntrk<"+sUp).c_str());
             
             cout << "Entries in "+sName << " = " << rds["data_"+ts[i]]->numEntries() << endl;
             
             fSubfolder = unique+"ntrk/binning1";
             // build pdf s and draw frames
-            tf[sName] = new TTemplateFit(sName, sName, m);
+            tf[sName] = new TTemplateFit(sName, sName, rv["m"]);
             tf[sName]->addData(rds["data_"+ts[i]], rds["template_sig"], rds["template_bkg_"+ts[i]]);
             // now perform an unbinned likelihood fit
             tf[sName]->setUnbinnedFit(kTRUE);
             tf[sName]->setRhoBkg(1.);
             tf[sName]->buildPdf(bins_ntrk_pdf[bin], "fit");
-            tf[sName]->drawRaw(fResults, fSubfolder);
-            tf[sName]->drawFrame(fResults, fSubfolder);
-            tf[sName]->save(fResults, fSubfolder);
+            tf[sName]->drawRaw(f["results_fit"], fSubfolder);
+            tf[sName]->drawFrame(f["results_fit"], fSubfolder);
+            tf[sName]->save(f["results_fit"], fSubfolder);
             
         }
         
@@ -825,23 +805,23 @@ void templateKernelUnbinned(map<string, string> set){
             sName = ts[i]+"_eta_"+sBin;
             //cout << sName << endl;
             
-            rds["data_"+ts[i]] =         (RooDataSet*)  rdsEta["data_"+ts[i]]->reduce(*m,         ("eta>="+sLow+" && eta<"+sUp).c_str());
-            rds["template_sig"] =        (RooDataSet*)  rdsEta["template_sig"]->reduce(*m,        ("eta>="+sLow+" && eta<"+sUp).c_str());
-            rds["template_bkg_"+ts[i]] = (RooDataSet*)  rdsEta["template_bkg_"+ts[i]]->reduce(*m, ("eta>="+sLow+" && eta<"+sUp).c_str());
+            rds["data_"+ts[i]] =         (RooDataSet*)  rdsEta["data_"+ts[i]]->reduce(*rv["m"],         ("eta>="+sLow+" && eta<"+sUp).c_str());
+            rds["template_sig"] =        (RooDataSet*)  rdsEta["template_sig"]->reduce(*rv["m"],        ("eta>="+sLow+" && eta<"+sUp).c_str());
+            rds["template_bkg_"+ts[i]] = (RooDataSet*)  rdsEta["template_bkg_"+ts[i]]->reduce(*rv["m"], ("eta>="+sLow+" && eta<"+sUp).c_str());
             
             cout << "Entries in "+sName << " = " << rds["data_"+ts[i]]->numEntries() << endl;
             
             fSubfolder = unique+"eta/binning1";
             // build pdf s and draw frames
-            tf[sName] = new TTemplateFit(sName, sName, m);
+            tf[sName] = new TTemplateFit(sName, sName, rv["m"]);
             tf[sName]->addData(rds["data_"+ts[i]], rds["template_sig"], rds["template_bkg_"+ts[i]]);
             // now perform an unbinned likelihood fit
             tf[sName]->setUnbinnedFit(kTRUE);
             tf[sName]->setRhoBkg(1.);
             tf[sName]->buildPdf(bins_eta_pdf[bin], "fit");
-            tf[sName]->drawRaw(fResults, fSubfolder);
-            tf[sName]->drawFrame(fResults, fSubfolder);
-            tf[sName]->save(fResults, fSubfolder);
+            tf[sName]->drawRaw(f["results_fit"], fSubfolder);
+            tf[sName]->drawFrame(f["results_fit"], fSubfolder);
+            tf[sName]->save(f["results_fit"], fSubfolder);
             
         }
         
@@ -849,7 +829,6 @@ void templateKernelUnbinned(map<string, string> set){
     
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Simulation
     unique = "ww_mc_";
-    
     
     //                        {   "data_num",
     //                            "data_den",
@@ -861,7 +840,6 @@ void templateKernelUnbinned(map<string, string> set){
     //                            "template_bkg_den_MC",
     //                            "template_sig",
     //                        };
-    
     
     // loop nominator and denominator:  
     // - for each, create a dataset within the pt bins of above;
@@ -876,25 +854,25 @@ void templateKernelUnbinned(map<string, string> set){
             sName = ts[i]+"_pt_"+sBin;
             //cout << sName << endl;
             
-            rds["mc_"+ts[i]] =                 (RooDataSet*)  rdsPt["mc_"+ts[i]]->reduce(*m,           ("pt>="+sLow+" && pt<"+sUp).c_str());
-            rds["template_sig"] =              (RooDataSet*)  rdsPt["template_sig"]->reduce(*m,          ("pt>="+sLow+" && pt<"+sUp).c_str());
-            rds["template_bkg_"+ts[i]+"_MC"] = (RooDataSet*)  rdsPt["template_bkg_"+ts[i]+"_MC"]->reduce(*m,   ("pt>="+sLow+" && pt<"+sUp).c_str());
+            rds["mc_"+ts[i]] =                 (RooDataSet*)  rdsPt["mc_"+ts[i]]->reduce(*rv["m"],           ("pt>="+sLow+" && pt<"+sUp).c_str());
+            rds["template_sig"] =              (RooDataSet*)  rdsPt["template_sig"]->reduce(*rv["m"],          ("pt>="+sLow+" && pt<"+sUp).c_str());
+            rds["template_bkg_"+ts[i]+"_MC"] = (RooDataSet*)  rdsPt["template_bkg_"+ts[i]+"_MC"]->reduce(*rv["m"],   ("pt>="+sLow+" && pt<"+sUp).c_str());
             
             cout << "Entries in "+sName << " = " << rds["mc_"+ts[i]]->numEntries() << endl;
             
             fSubfolder = unique+"pt/binning1";
             //fSubfolder = "pt/pullTests/withAverage";
             // build pdf s and draw frames
-            tf[sName] = new TTemplateFit(sName, sName, m);
+            tf[sName] = new TTemplateFit(sName, sName, rv["m"]);
             tf[sName]->setType("mc"); // initialize as montecarlo fitter
             tf[sName]->addData(rds["mc_"+ts[i]], rds["template_sig"], rds["template_bkg_"+ts[i]+"_MC"]);
             // now perform an unbinned likelihood fit
             tf[sName]->setUnbinnedFit(kTRUE);
             tf[sName]->setRhoBkg(1.);
             tf[sName]->buildPdf(bins_pt_pdf[bin], "fit");
-            tf[sName]->drawRaw(fResults, fSubfolder);
-            tf[sName]->drawFrame(fResults, fSubfolder);
-            tf[sName]->save(fResults, fSubfolder);
+            tf[sName]->drawRaw(f["results_fit"], fSubfolder);
+            tf[sName]->drawFrame(f["results_fit"], fSubfolder);
+            tf[sName]->save(f["results_fit"], fSubfolder);
             
             
         }
@@ -908,24 +886,24 @@ void templateKernelUnbinned(map<string, string> set){
             sName = ts[i]+"_nvtx_"+sBin;
             //cout << sName << endl;
             
-            rds["mc_"+ts[i]] =         (RooDataSet*)  rdsNvtx["mc_"+ts[i]]->reduce(*m,         ("nvtx>="+sLow+" && nvtx<"+sUp).c_str());
-            rds["template_sig"] =        (RooDataSet*)  rdsNvtx["template_sig"]->reduce(*m,        ("nvtx>="+sLow+" && nvtx<"+sUp).c_str());
-            rds["template_bkg_"+ts[i]+"_MC"] = (RooDataSet*)  rdsNvtx["template_bkg_"+ts[i]+"_MC"]->reduce(*m, ("nvtx>="+sLow+" && nvtx<"+sUp).c_str());
+            rds["mc_"+ts[i]] =         (RooDataSet*)  rdsNvtx["mc_"+ts[i]]->reduce(*rv["m"],         ("nvtx>="+sLow+" && nvtx<"+sUp).c_str());
+            rds["template_sig"] =        (RooDataSet*)  rdsNvtx["template_sig"]->reduce(*rv["m"],        ("nvtx>="+sLow+" && nvtx<"+sUp).c_str());
+            rds["template_bkg_"+ts[i]+"_MC"] = (RooDataSet*)  rdsNvtx["template_bkg_"+ts[i]+"_MC"]->reduce(*rv["m"], ("nvtx>="+sLow+" && nvtx<"+sUp).c_str());
             
             cout << "Entries in "+sName << " = " << rds["mc_"+ts[i]]->numEntries() << endl;
             
             fSubfolder = unique+"nvtx/binning1";
             // build pdf s and draw frames
-            tf[sName] = new TTemplateFit(sName, sName, m);
+            tf[sName] = new TTemplateFit(sName, sName, rv["m"]);
             tf[sName]->setType("mc"); // initialize as montecarlo fitter
             tf[sName]->addData(rds["mc_"+ts[i]], rds["template_sig"], rds["template_bkg_"+ts[i]+"_MC"]);
             // now perform an unbinned likelihood fit
             tf[sName]->setUnbinnedFit(kTRUE);
             tf[sName]->setRhoBkg(1.);
             tf[sName]->buildPdf(bins_nvtx_pdf[bin], "fit");
-            tf[sName]->drawRaw(fResults, fSubfolder);
-            tf[sName]->drawFrame(fResults, fSubfolder);
-            tf[sName]->save(fResults, fSubfolder);
+            tf[sName]->drawRaw(f["results_fit"], fSubfolder);
+            tf[sName]->drawFrame(f["results_fit"], fSubfolder);
+            tf[sName]->save(f["results_fit"], fSubfolder);
             
         }
         
@@ -937,24 +915,24 @@ void templateKernelUnbinned(map<string, string> set){
             sName = ts[i]+"_ntrk_"+sBin;
             //cout << sName << endl;
             
-            rds["mc_"+ts[i]] =         (RooDataSet*)  rdsNtrk["mc_"+ts[i]]->reduce(*m,         ("ntrk>="+sLow+" && ntrk<"+sUp).c_str());
-            rds["template_sig"] =        (RooDataSet*)  rdsNtrk["template_sig"]->reduce(*m,        ("ntrk>="+sLow+" && ntrk<"+sUp).c_str());
-            rds["template_bkg_"+ts[i]+"_MC"] = (RooDataSet*)  rdsNtrk["template_bkg_"+ts[i]+"_MC"]->reduce(*m, ("ntrk>="+sLow+" && ntrk<"+sUp).c_str());
+            rds["mc_"+ts[i]] =         (RooDataSet*)  rdsNtrk["mc_"+ts[i]]->reduce(*rv["m"],         ("ntrk>="+sLow+" && ntrk<"+sUp).c_str());
+            rds["template_sig"] =        (RooDataSet*)  rdsNtrk["template_sig"]->reduce(*rv["m"],        ("ntrk>="+sLow+" && ntrk<"+sUp).c_str());
+            rds["template_bkg_"+ts[i]+"_MC"] = (RooDataSet*)  rdsNtrk["template_bkg_"+ts[i]+"_MC"]->reduce(*rv["m"], ("ntrk>="+sLow+" && ntrk<"+sUp).c_str());
             
             cout << "Entries in "+sName << " = " << rds["mc_"+ts[i]]->numEntries() << endl;
             
             fSubfolder = unique+"ntrk/binning1";
             // build pdf s and draw frames
-            tf[sName] = new TTemplateFit(sName, sName, m);
+            tf[sName] = new TTemplateFit(sName, sName, rv["m"]);
             tf[sName]->setType("mc"); // initialize as montecarlo fitter
             tf[sName]->addData(rds["mc_"+ts[i]], rds["template_sig"], rds["template_bkg_"+ts[i]+"_MC"]);
             // now perform an unbinned likelihood fit
             tf[sName]->setUnbinnedFit(kTRUE);
             tf[sName]->setRhoBkg(1.);
             tf[sName]->buildPdf(bins_ntrk_pdf[bin], "fit");
-            tf[sName]->drawRaw(fResults, fSubfolder);
-            tf[sName]->drawFrame(fResults, fSubfolder);
-            tf[sName]->save(fResults, fSubfolder);
+            tf[sName]->drawRaw(f["results_fit"], fSubfolder);
+            tf[sName]->drawFrame(f["results_fit"], fSubfolder);
+            tf[sName]->save(f["results_fit"], fSubfolder);
             
         }
         
@@ -966,24 +944,24 @@ void templateKernelUnbinned(map<string, string> set){
             sName = ts[i]+"_eta_"+sBin;
             //cout << sName << endl;
             
-            rds["mc_"+ts[i]] =         (RooDataSet*)  rdsEta["mc_"+ts[i]]->reduce(*m,         ("eta>="+sLow+" && eta<"+sUp).c_str());
-            rds["template_sig"] =        (RooDataSet*)  rdsEta["template_sig"]->reduce(*m,        ("eta>="+sLow+" && eta<"+sUp).c_str());
-            rds["template_bkg_"+ts[i]+"_MC"] = (RooDataSet*)  rdsEta["template_bkg_"+ts[i]+"_MC"]->reduce(*m, ("eta>="+sLow+" && eta<"+sUp).c_str());
+            rds["mc_"+ts[i]] =         (RooDataSet*)  rdsEta["mc_"+ts[i]]->reduce(*rv["m"],         ("eta>="+sLow+" && eta<"+sUp).c_str());
+            rds["template_sig"] =        (RooDataSet*)  rdsEta["template_sig"]->reduce(*rv["m"],        ("eta>="+sLow+" && eta<"+sUp).c_str());
+            rds["template_bkg_"+ts[i]+"_MC"] = (RooDataSet*)  rdsEta["template_bkg_"+ts[i]+"_MC"]->reduce(*rv["m"], ("eta>="+sLow+" && eta<"+sUp).c_str());
             
             cout << "Entries in "+sName << " = " << rds["mc_"+ts[i]]->numEntries() << endl;
             
             fSubfolder = unique+"eta/binning1";
             // build pdf s and draw frames
-            tf[sName] = new TTemplateFit(sName, sName, m);
+            tf[sName] = new TTemplateFit(sName, sName, rv["m"]);
             tf[sName]->setType("mc"); // initialize as montecarlo fitter
             tf[sName]->addData(rds["mc_"+ts[i]], rds["template_sig"], rds["template_bkg_"+ts[i]+"_MC"]);
             // now perform an unbinned likelihood fit
             tf[sName]->setUnbinnedFit(kTRUE);
             tf[sName]->setRhoBkg(1.);
             tf[sName]->buildPdf(bins_eta_pdf[bin], "fit");
-            tf[sName]->drawRaw(fResults, fSubfolder);
-            tf[sName]->drawFrame(fResults, fSubfolder);
-            tf[sName]->save(fResults, fSubfolder);
+            tf[sName]->drawRaw(f["results_fit"], fSubfolder);
+            tf[sName]->drawFrame(f["results_fit"], fSubfolder);
+            tf[sName]->save(f["results_fit"], fSubfolder);
             
         }
         
@@ -997,14 +975,119 @@ void templateKernelUnbinned(map<string, string> set){
     //~ 
     //~ // close files
     jumperEnd:
-    fSig->Close();
-    fBkg->Close();
-    fDat->Close(); 
-    f_Mc->Close();
-    fResults->Close();
-    
-    return;
+    for(auto const& fIt: f){
+        fIt.second->Close();
     }
+    return;
+}
+
+void fitGlobalData( map<string, TTemplateFit*>  &tf,
+                    map<string, TTree*>         &t,
+                    map<string, TFile*>         &f,
+                    RooRealVar                  &m
+                    )// Int_t& Nts, map<string, TTree*>& t, RooRealVar& m, map<string, TTemplateFit*> tf
+{
+    
+    string ts[] = {"den", "num"};
+    Int_t Nts   = arraysize(ts);
+    string fSubfolder;
+    string unique;
+    
+    RooAbsPdf *parametrizedModel;
+    
+    
+    // global fits on data ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    for(int i=0; i<Nts; i++){
+        // create template fit objects
+        cout << "initialize tf["<< ts[i] << "]:" << endl;
+        tf[ts[i]] = new TTemplateFit(ts[i], ts[i], &m);
+        tf[ts[i]]->addData(t["data_"+ts[i]], t["template_sig"], t["template_bkg_"+ts[i]]);
+        
+        tf[ts[i]]->setRhoBkg(1.);         // set rho to 1 (smoothness prefered over detail)
+        tf[ts[i]]->setUnbinnedFit(kTRUE); // unbinned fit
+        
+        fSubfolder = unique+"global/withSigConvFFT";
+        
+        //~ // fit with convolution
+        tf[ts[i]]->buildPdf("hist", "fit");
+        tf[ts[i]]->drawRaw(f["results_fit"], fSubfolder);
+        tf[ts[i]]->drawFrame(f["results_fit"], fSubfolder);
+        tf[ts[i]]->save(f["results_fit"], fSubfolder);
+        
+        //~ // parametrized model fit
+        parametrizedModel = getModelPdf(m, tf[ts[i]]->getNtot(), "modelDCB", ts[i]);
+        tf[ts[i]]->setUnbinnedFit(kFALSE); // binned fit
+        tf[ts[i]]->fitToPdf(parametrizedModel, f["results_fit"], fSubfolder, "fit", "bkg");
+        
+        tf[ts[i]]->setUnbinnedFit(kTRUE); // unbinned fit
+        
+        // no convolution
+        fSubfolder = unique+"global/noSigConvFFT";
+        tf[ts[i]]->setSignalConvolution(kFALSE); // set convolution off
+        tf[ts[i]]->buildPdf("hist", "fit");     // build template based pdfs (histogram based for signal) and fit them
+        tf[ts[i]]->drawRaw(f["results_fit"], fSubfolder);
+        tf[ts[i]]->drawFrame(f["results_fit"], fSubfolder);
+        tf[ts[i]]->save(f["results_fit"], fSubfolder);
+        
+        //~ // scale the background template
+        fSubfolder = unique+"global/backgroundVariation/scalingPlots";
+        tf[ts[i]]->scaleBackgroundTemplate(t["template_bkg_"+ts[i]+"_MC"], t["template_bkg_"+ts[i]+"_MC_true"], f["results_fit"], fSubfolder);
+        // now fit again
+        fSubfolder = unique+"global/backgroundVariation/templateFit";
+        tf[ts[i]]->setSignalConvolution(kTRUE); // set convolution off
+        tf[ts[i]]->setUnbinnedFit(kFALSE); // binned fit
+        tf[ts[i]]->buildPdf("hist", "fit");
+        tf[ts[i]]->drawRaw(f["results_fit"], fSubfolder);
+        tf[ts[i]]->drawFrame(f["results_fit"], fSubfolder);
+        tf[ts[i]]->save(f["results_fit"], fSubfolder);
+        
+    }
+    
+    
+    return ;
+}
+
+
+/* mc fit
+void fitGlobalMC()
+{
+    
+    // global fits on mc   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    for(int i=0; i<Nts; i++){
+        // create template fit objects
+        cout << "initialize tf["<< ts[i] << "]:" << endl;
+        tf[ts[i]] = new TTemplateFit(ts[i], ts[i], m);
+        tf[ts[i]]->setType("mc"); // initialize as montecarlo fitter
+        
+        //tf[ts[i]]->addData(rdsMcW["mc_"+ts[i]], t["template_sig"], t["template_bkg_"+ts[i]]);
+        tf[ts[i]]->addData(thMc["mc_"+ts[i]], t["template_sig"], t["template_bkg_"+ts[i]+"_MC"]);
+        
+        tf[ts[i]]->setRhoBkg(1.);          // set rho to 1 (smoothness prefered over detail)
+        tf[ts[i]]->setUnbinnedFit(kFALSE); // binned fit
+        
+        // fit with convolution
+        fSubfolder = unique+"mc_global/withSigConvFFT";
+        tf[ts[i]]->buildPdf("hist", "fit");
+        tf[ts[i]]->drawRaw(f["results_fit"], fSubfolder);
+        tf[ts[i]]->drawFrame(f["results_fit"], fSubfolder);
+        tf[ts[i]]->save(f["results_fit"], fSubfolder);
+        
+        // fit with true background template for systematic uncertainty
+        tf[ts[i]]->addData(thMc["mc_"+ts[i]], t["template_sig"], t["template_bkg_"+ts[i]+"_MC_true"]);
+        tf[ts[i]]->setRhoBkg(1.);          // set rho to 1 (smoothness prefered over detail)
+        tf[ts[i]]->setUnbinnedFit(kFALSE); // binned fit
+        fSubfolder = unique+"mc_global/withTrueBkg";
+        tf[ts[i]]->buildPdf("hist", "fit");
+        tf[ts[i]]->drawRaw(f["results_fit"], fSubfolder);
+        tf[ts[i]]->drawFrame(f["results_fit"], fSubfolder);
+        tf[ts[i]]->save(f["results_fit"], fSubfolder);
+        
+    }
+    
+    
+    return ;
+}
+*/
 
 // ***************************************************************************************************************************
 // * create fake rate dependency plots

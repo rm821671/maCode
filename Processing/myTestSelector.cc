@@ -65,7 +65,7 @@ void myTestSelector(){
     SystemPath(filepath, dropbox);
     
     string datasets[] = {
-                        
+        
                         
                         
                         //"DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v01.root" // 0
@@ -90,7 +90,6 @@ void myTestSelector(){
                         //"ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v03.root", // 3
                         "ZGTo2LG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8_v04.root", //3
                         
-                        
                         "DoubleEG_Run2015D-05Oct2015-v1_v02.root",  // 4
                         "DoubleEG_Run2015D-PromptReco-v4_v02.root", // 5
                         
@@ -101,9 +100,11 @@ void myTestSelector(){
                         //"SingleElectron_Run2015D-05Oct2015-v1.root", // 9
                         //"SingleElectron_Run2015D-PromptReco-v4.root", // 10
                         //"SingleElectron_Run2015C_25ns-05Oct2015-v1_v02.root", // 8
-                        "SingleElectron_Run2015C_25ns-16Dec2015-v1_v01.root", // 8
+                        //"SingleElectron_Run2015C_25ns-16Dec2015-v1_v01.root", // 8
+                        "SingleElectron_Run2015C_25ns-16Dec2015-v1_EGMsmearing.root", // 8
                         //"SingleElectron_Run2015D-05Oct2015-v1_v02.root", // 9
-                        "SingleElectron_Run2015D-16Dec2015-v1_v01.root", // 9
+                        //"SingleElectron_Run2015D-16Dec2015-v1_v01.root", // 9
+                        "SingleElectron_Run2015D-16Dec2015-v1_v01_EGMsmearing.root", // 9
                         //"SingleElectron_Run2015D-PromptReco-v4_v02.root", // 10
                         "SingleElectron_Run2015D-PromptReco-v4_v03.root", // 10 <<-- ist in RunD 16Dec enthalten
                         
@@ -122,6 +123,12 @@ void myTestSelector(){
                         "SingleMuon_Run2015C_25ns-05Oct2015-v1_v02.root", // 14
                         "SingleMuon_Run2015D-05Oct2015-v1_v02.root",   // 15
                         "SingleMuon_Run2015D-PromptReco-v4_v02.root",    // 16  << not available
+                        
+                        //~ "SingleMuon_Run2015D-16Dec2015-v1_EGMsmearing.root",            // 25
+                        //~ "SingleMuon_Run2015C_25ns-16Dec2015-v1_v01_EGMsmearing.root",   // 26
+                        
+                        
+                        
                         
                         // updated trigger objects: additional trigger labels
                         /*
@@ -142,8 +149,11 @@ void myTestSelector(){
                         "SingleMuon_Run2015D-16Dec2015-v1_v01.root",      //18
                         "SingleMuon_Run2015D-PromptReco-v4_v02.root",     //19
                         
-                        "MuonEG_Run2015C_25ns-16Dec2015-v1_v01.root", //20
-                        "MuonEG_Run2015D-16Dec2015-v1_v01.root",      //21
+                        //~ "MuonEG_Run2015C_25ns-16Dec2015-v1_v01.root", //20
+                        //~ "MuonEG_Run2015D-16Dec2015-v1_v01.root",      //21
+                        "MuonEG_Run2015C_25ns-16Dec2015-v1_v01_EGMsmearing.root",       // 20
+                        "MuonEG_Run2015D-16Dec2015-v1_v01_EGMsmearing.root",            // 21
+                        
                         "MuonEG_Run2015D-PromptReco-v4_v03.root",     //22 <<-- ist in Run2015D 16Dec enthalten
                         
                         
@@ -167,6 +177,20 @@ void myTestSelector(){
                         
                         // ttbar without gamma
                         "TTJets.root",                      // 30
+                        
+                        
+                        // monte carlo with no weights
+                        // https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
+                        "WJetsToLNu_v1_EGMsmearing.root",          // 31    61526.7+497.1-264.6 ±2312.7 pb 
+                        "DYJetsToLL_M-50_v1_EGMsmearing.root",     // 32    71310 ± 70  pb
+                        "TTJets_EGMsmearing.root",                 // 33    831.76 +19.77 -29.20 +35.06 -35.06 pb 
+                        
+                        
+                        
+                        
+                        
+                        
+                        
                     };
     
     
@@ -348,10 +372,11 @@ void myTestSelector(){
     
     
     
+    
     // ////////////////////////////////////////////////////////////////////////////////////////////
     // signal template construction, including unbinned trees
     // -- from DY
-
+/*
     int set;
     int r;
     string dataset;
@@ -402,15 +427,16 @@ void myTestSelector(){
     int set;
     int r(3);
     //~ //             0  1  2  3  4   5   6    7   8   9  10  11
-    Int_t indices[] = {0, 1, 2, 3, 23, 24, 25, 26, 27, 28, 29, 30};
+    Int_t indices[] = {0, 1, 2, 3, 23, 24, 25, 26, 27, 28, 29, 30}; // << obsolete
+    //~ "WJetsToLNu_v1_EGMsmearing.root",          // 31    61526.7+497.1-264.6 ±2312.7 pb 
+    //~ "DYJetsToLL_M-50_v1_EGMsmearing.root",     // 32    71310 ± 70  pb
+    //~ "TTJets_EGMsmearing.root",                 // 33    831.76 +19.77 -29.20 +35.06 -35.06 pb 
     string dataset;
-    // DYJetsToLL+ZGTo2LNu+TTGJets+WGToLNuG+WJetsToLNu+TTJets
-    //string outputName = createUniqueFilename("/backgroundlTemplates_MC_PlusUnbinned_.root");
-    string outputName = createUniqueFilename("/backgroundlTemplates_MC_DYJetsToLL_PlusUnbinned_.root");
+    string outputName = createUniqueFilename("/backgroundlTemplates_MC_TTJets_PlusUnbinned_.root");
     cout << "outputfile will be: " << outputName << endl;
     init(h, h2, tb, outputName); // tb contain the tree branches
-    //for(set=0; set <= 0; set++){
-    for(auto &set: indices){
+    for(set=33; set <= 33; set++){
+    //for(auto &set: indices){
         cout << datasets[set] << endl;
         dataset = filepath + datasets[set];
         cout << "call the function..." << endl;
